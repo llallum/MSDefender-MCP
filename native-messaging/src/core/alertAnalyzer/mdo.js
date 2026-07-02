@@ -1,5 +1,5 @@
 import { BASE_URL , ENDPOINTS} from "../endpoints.js";
-import { getDefender } from "../../child.js";
+import { getDefender } from "../../server/child.js";
 import pkg from "lodash";
 const _ = pkg;
 

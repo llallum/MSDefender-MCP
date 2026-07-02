@@ -1,5 +1,5 @@
 import { __log, saveToJson } from "../utils/utils.js";
-import {getDefender, setInMemoryHeaders} from "../child.js";
+import {getDefender, setInMemoryHeaders} from "../server/child.js";
 import {broadcastToMCP} from "../utils/pipeServer.js"
 //import { nativeMessages } from "../utils/browserMessages.js";
 
