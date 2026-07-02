@@ -1,0 +1,43 @@
+{
+    "manifest_version": 3,
+    "name": "Browser Session Cookie Utility for Defender Only",
+    "description": "For MCP Server of Defender",
+    "version": "0.0.1",
+    "action": {
+      "default_popup": "index.html"
+    },
+    "background": {
+        "service_worker": "background.js" 
+    },
+    "permissions": [
+        "debugger",
+        "webRequest", 
+        "webRequestAuthProvider",  
+        "sidePanel", 
+        "cookies",
+        "storage",
+        "tabs",
+        "activeTab",
+        "webNavigation",
+        "nativeMessaging",
+        "clipboardWrite",
+        "scripting"
+    ],
+    "host_permissions": [
+        "*://security.microsoft.com/*", 
+        "*://intune.microsoft.com/*",
+        "*://portal.azure.com/*",
+        "*://graph.microsoft.com/*",
+        "*://blank.org/*"
+    ],
+    "side_panel":  {
+         "default_path": "index.html"
+      },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "run_at" : "document_idle",
+            "js": ["contentScript.js"]
+        }
+    ]
+}
