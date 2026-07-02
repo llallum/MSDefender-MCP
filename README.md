@@ -122,9 +122,33 @@ MSDefender-MCP/
 1. Open Chrome and go to `chrome://extensions`
 2. Enable **Developer Mode** (top-right toggle)
 3. Click **Load unpacked**
-4. Select the `browser-extension/` folder
+4. Select the `browser-extension/dist/` folder (the built output directory)
+5. The extension **"Browser Session Cookie Utility for Defender Only"** will appear in the list
 
-### Step 2 — Install the Native Messaging Host
+### Step 2 — Get Your Extension ID and Update the Native Manifest
+
+After loading the extension, Chrome assigns it a unique **Extension ID** (shown under the extension name on the extensions page).
+
+1. Copy your **Extension ID** (e.g. `nlgipginfcfjbkeilighikmiekfhfkpf`)
+2. Open `native-messaging/manifest.json` and update the `allowed_origins` field:
+
+```json
+{
+  "name": "com.defender.mcp_server",
+  "description": "MCP Server Native Messaging Host",
+  "path": "",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://<YOUR_EXTENSION_ID>/"
+  ]
+}
+```
+
+Replace `<YOUR_EXTENSION_ID>` with the actual ID from Step 1.
+
+> **Why?** Chrome uses this ID to verify that only your specific extension instance can communicate with the native host. If the ID does not match, the connection will be refused.
+
+### Step 3 — Install the Native Messaging Host
 
 Navigate to the `native-messaging/` folder and run:
 
@@ -134,12 +158,12 @@ install.bat
 
 This will:
 1. Run `npm install` to install Node.js dependencies
-2. Update `manifest.json` with the correct absolute path to `src/main.js`
-3. Write the Chrome Native Messaging Host registry key
+2. Update `manifest.json` with the correct absolute path to `src/server/main.js`
+3. Write the Chrome Native Messaging Host registry key pointing to the updated `manifest.json`
 
 > **Note:** If the registry step fails, right-click `install.bat` → **Run as administrator**.
 
-### Step 3 — Configure Your MCP Client
+### Step 4 — Configure Your MCP Client
 
 #### Zoo Code (Roo) or Cline — VSCode
 
@@ -179,7 +203,7 @@ The Claude.ai web console supports MCP via the **MCP Remote** proxy. Run the MCP
 
 > **Note:** Update all paths above to match your actual installation directory.
 
-### Step 4 — Authenticate
+### Step 5 — Authenticate
 
 1. Open Chrome and navigate to [Microsoft Defender XDR](https://security.microsoft.com)
 2. Sign in with your Microsoft account
