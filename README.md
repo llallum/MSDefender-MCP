@@ -2,6 +2,8 @@
 
 A **Model Context Protocol (MCP) server** that integrates with **Microsoft Defender XDR** and **Microsoft Graph** APIs — **no API token required**. Authentication is handled via a Chrome browser extension that captures your active Defender session cookies.
 
+> **Compatible with:** [Zoo Code (Roo)](https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.roo-cline) · [Cline](https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev) · [Claude Desktop](https://claude.ai/download) · [Claude.ai Console](https://console.anthropic.com) · Any MCP-compatible AI client
+
 ---
 
 ## How It Works
@@ -15,11 +17,14 @@ Chrome Browser                    Your Machine
 │ Captures your   │              │   src/mcp-server.js (MCP server)     │
 │ Defender session│              └──────────────────────────────────────┘
 │ cookies & sends │                          │
-│ them to the     │                          │ MCP Protocol
+│ them to the     │                          │ MCP Protocol (stdio)
 │ native host     │                          ▼
 └─────────────────┘              ┌──────────────────────────────────────┐
-                                 │ VSCode (Roo / Cline)                 │
-                                 │ AI Assistant with Defender tools     │
+                                 │ Any MCP Client:                      │
+                                 │  • Zoo Code (Roo) in VSCode          │
+                                 │  • Cline in VSCode                   │
+                                 │  • Claude Desktop                    │
+                                 │  • Claude.ai Console                 │
                                  └──────────────────────────────────────┘
 ```
 
@@ -78,7 +83,11 @@ MSDefender-MCP/
 - **Node.js v20** — [Download](https://nodejs.org/)
 - **Google Chrome** browser
 - **Microsoft Defender XDR** access (any licensed user)
-- **VSCode** with [Roo](https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.roo-cline) or [Cline](https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev) extension
+- **One of the following MCP clients:**
+  - [Zoo Code (Roo)](https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.roo-cline) — VSCode extension
+  - [Cline](https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev) — VSCode extension
+  - [Claude Desktop](https://claude.ai/download) — Desktop app
+  - [Claude.ai Console](https://console.anthropic.com) — Web-based (requires MCP proxy)
 
 ---
 
@@ -106,9 +115,11 @@ This will:
 
 > **Note:** If the registry step fails, right-click `install.bat` → **Run as administrator**.
 
-### Step 3 — Configure VSCode MCP
+### Step 3 — Configure Your MCP Client
 
-Open the VSCode Command Palette (`Ctrl+Shift+P`) → **"Roo: Open MCP Settings"** and add:
+#### Zoo Code (Roo) or Cline — VSCode
+
+Open the VSCode Command Palette (`Ctrl+Shift+P`) → **"Roo: Open MCP Settings"** (or **"Cline: MCP Servers"**) and add:
 
 ```json
 {
@@ -121,7 +132,28 @@ Open the VSCode Command Palette (`Ctrl+Shift+P`) → **"Roo: Open MCP Settings"*
 }
 ```
 
-> Update the path to match your actual installation directory.
+#### Claude Desktop
+
+Edit `%APPDATA%\Claude\claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "defender-mcp": {
+      "command": "node",
+      "args": ["C:\\path\\to\\native-messaging\\src\\mcp-server.js"]
+    }
+  }
+}
+```
+
+Restart Claude Desktop after saving.
+
+#### Claude.ai Console
+
+The Claude.ai web console supports MCP via the **MCP Remote** proxy. Run the MCP server locally and expose it via `mcp-remote` or a compatible tunnel, then add the remote URL in the Claude console settings.
+
+> **Note:** Update all paths above to match your actual installation directory.
 
 ### Step 4 — Authenticate
 
