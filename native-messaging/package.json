@@ -1,11 +1,10 @@
 {
+  "name": "msdefender-mcp-native",
+  "version": "1.0.0",
+  "description": "Microsoft Defender XDR MCP Server — Native Messaging Host",
+  "type": "module",
   "dependencies": {
-    "@azure/identity": "^4.8.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
-    "azure-kusto-data": "^6.0.3",
-    "azure-kusto-ingest": "^6.0.3",
-    "lodash": "^4.17.21",
-    "node-native-messaging-host": "^1.0.5"
-  },
-  "type": "module"
+    "duckdb-async": "^1.1.3"
+  }
 }
