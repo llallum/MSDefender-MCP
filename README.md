@@ -72,8 +72,26 @@ MSDefender-MCP/
 │           ├── incidentStatusValues.js ← Incident status enums
 │           └── utils.js            ← General utilities
 │
-└── browser-extension/    ← Chrome Extension (load unpacked in Chrome)
-    └── README.md         ← Extension setup instructions
+└── browser-extension/    ← Chrome Extension source (TypeScript + React)
+    ├── manifest.json         ← Chrome extension manifest (MV3)
+    ├── package.json          ← Node.js dependencies (TypeScript, Webpack, React)
+    ├── tsconfig.json         ← TypeScript configuration
+    ├── webpack.config.js     ← Webpack bundler config
+    ├── plans/
+    │   └── INSTALLATION.md   ← Extension installation guide
+    └── src/
+        ├── index.html            ← Side panel HTML shell
+        ├── background/
+        │   ├── index.ts              ← Background service worker entry
+        │   ├── native-messaging.ts   ← Chrome Native Messaging bridge
+        │   ├── sentinel-apiproxy.ts  ← Defender session header capture
+        │   └── sidepanel.ts          ← Side panel message handler
+        ├── content/
+        │   └── index.ts              ← Content script (page-level injection)
+        └── react/
+            ├── index.tsx             ← React app entry point
+            └── components/
+                └── App.tsx           ← Main React UI component
 ```
 
 ---
