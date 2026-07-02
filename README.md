@@ -9,25 +9,25 @@ A **Model Context Protocol (MCP) server** that integrates with **Microsoft Defen
 ## How It Works
 
 ```
-Chrome Browser                    Your Machine                          Microsoft Cloud
-┌─────────────────┐              ┌──────────────────────────────────────┐   ┌─────────────────────────────┐
-│ browser-        │  Native      │ native-messaging/                    │   │                             │
-│ extension/      │◄────────────►│   src/server/main.js (entry point)  │   │  security.microsoft.com     │
-│                 │  Messaging   │   src/server/child.js (Defender      │◄──►│  (Defender XDR API)         │
-│ Captures your   │              │     client + API caller)             │   │                             │
-│ Defender session│              │   src/client/mcp-server.js           │   │  graph.microsoft.com        │
-│ cookies & sends │              │     (MCP server, stdio transport)    │◄──►│  (Microsoft Graph API)      │
-│ them to the     │              └──────────────────────────────────────┘   │                             │
-│ native host     │                          │                              │  api.securitycenter.windows │
-└─────────────────┘                          │ MCP Protocol (stdio)         │  .com (MDE API)             │
-                                             ▼                              └─────────────────────────────┘
-                                 ┌──────────────────────────────────────┐
-                                 │ Any MCP Client:                      │
-                                 │  • Zoo Code (Roo) in VSCode          │
-                                 │  • Cline in VSCode                   │
-                                 │  • Claude Desktop                    │
-                                 │  • Claude.ai Console                 │
-                                 └──────────────────────────────────────┘
++------------------+   Native Messaging   +----------------------------------------+   +------------------------------+
+|  Chrome Browser  |  <================>  |  Your Machine (native-messaging/)      |   |  Microsoft Cloud             |
+|                  |                      |                                        |   |                              |
+|  browser-        |                      |  src/server/main.js  (entry point)     |   |  security.microsoft.com      |
+|  extension/      |                      |  src/server/child.js (Defender client) +-->|  (Defender XDR API)          |
+|                  |                      |  src/client/mcp-server.js (MCP server) +-->|  graph.microsoft.com         |
+|  Captures your   |                      |                                        |   |  (Microsoft Graph API)       |
+|  Defender session|                      |                                        +-->|  api.securitycenter.windows  |
+|  cookies & sends |                      +--------------------+-------------------+   |  .com (MDE API)              |
+|  them to the     |                                           |                       +------------------------------+
+|  native host     |                                           | MCP Protocol (stdio)
++------------------+                                           v
+                                               +----------------------------------+
+                                               |  Any MCP Client                  |
+                                               |  - Zoo Code (Roo) in VSCode      |
+                                               |  - Cline in VSCode               |
+                                               |  - Claude Desktop                |
+                                               |  - Claude.ai Console             |
+                                               +----------------------------------+
 ```
 
 The Chrome extension intercepts your authenticated Defender session and forwards the session headers to the native messaging host. The MCP server then uses those headers to make API calls to Microsoft Defender XDR on your behalf.
@@ -97,7 +97,8 @@ MSDefender-MCP/
         └── react/
             ├── index.tsx             ← React app entry point
             └── components/
-                └── App.tsx           ← Main React UI component
+                ├── App.tsx           ← Main React UI component
+                └── PingIndicator.tsx ← Animated ping/pong status indicator
 ```
 
 ---
@@ -287,30 +288,32 @@ The `get_defender_alert_info` tool automatically identifies the alert source fro
 The server uses a **named pipe IPC** architecture:
 
 ```
-Chrome Extension
-      │ Native Messaging (session headers)
-      ▼
-  main.js  ──fork──►  child.js  ◄──── defender.json (session cache)
-                          │                │
-                          │                │ HTTPS requests (cookie-based auth)
-                          │                ▼
-                          │     ┌─────────────────────────────────────┐
-                          │     │        Microsoft Cloud APIs          │
-                          │     │  • security.microsoft.com (XDR)     │
-                          │     │  • graph.microsoft.com (Graph)      │
-                          │     │  • api.securitycenter.windows.com   │
-                          │     └─────────────────────────────────────┘
-                          │
-                    pipeServer.js  (named pipe: \\.\pipe\defender-mcp)
-                          │
-                    pipeClient.js
-                          │
-                    mcp-server.js  ◄──── VSCode / AI Client
-                                              │ tool call
-                                              ▼
-                                     AI sends request → child.js
-                                     calls Defender API → returns
-                                     result to AI client
+  Chrome Extension
+        |
+        |  Native Messaging (session headers)
+        v
+    main.js  --fork-->  child.js  <---- defender.json (session cache)
+                            |                |
+                            |                | HTTPS requests (cookie-based auth)
+                            |                v
+                            |     +---------------------------------------+
+                            |     |       Microsoft Cloud APIs            |
+                            |     |  - security.microsoft.com (XDR)      |
+                            |     |  - graph.microsoft.com (Graph)       |
+                            |     |  - api.securitycenter.windows.com    |
+                            |     +---------------------------------------+
+                            |
+                      pipeServer.js  (named pipe: \\.\pipe\defender-mcp)
+                            |
+                      pipeClient.js
+                            |
+                      mcp-server.js  <---- VSCode / AI Client
+                                                |
+                                                |  tool call
+                                                v
+                                       AI sends request --> child.js
+                                       calls Defender API --> returns
+                                       result to AI client
 ```
 
 - **`main.js`** — Native Messaging Host; receives session headers from Chrome extension and forwards messages to `child.js`
