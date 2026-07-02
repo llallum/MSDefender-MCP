@@ -37,8 +37,13 @@ export class HttpClient {
                 signal: controller.signal
             });
             if (HTTP_ERROR_CODES.includes(res.status)) {
-                return {success: res.ok, status: res?.status, body: res?.statusText};  // ← caught by getDeviceTimeline's catch → {status:'error'}
-            }                
+                let errorBody = null;
+                try {
+                    errorBody = await res.json();
+                    console.log(errorBody);
+                } catch(_){}
+                return {success: res.ok, status: res?.status, body: errorBody || res?.statusText};
+            }
             const text = await res.text();
          //   clearTimeout(timeout);
             if (!text || text.trim() === '') return {success: res.ok , status: res.status, body: ''}
