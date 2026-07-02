@@ -365,6 +365,10 @@ MIT
 
 ## Changelog
 
+### v1.0.3 *(2026-07-02)*
+
+- fix: `native-messaging/src/utils/httpClient.js` — fixed double-consume bug in `post()` error handler where `res.json()` was called twice on the same `Response` body stream, causing the second call to throw and `errorBody` to always be `null`; error response body is now correctly returned
+
 ### v1.0.2 *(2026-07-02)*
 
 - feat: `browser-extension` — added `PingIndicator` component with animated ping/pong status indicator
