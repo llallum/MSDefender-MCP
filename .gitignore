@@ -1,0 +1,12 @@
+node_modules/
+src/server/defender.json
+src/duckdb/
+*.log
+error.log
+.roo/
+.vscode/
+trash/
+Previous/
+src/mcp-server.log
+src/utils/mcp-server.log
+src/server/error.log

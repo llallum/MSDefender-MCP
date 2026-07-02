@@ -1,0 +1,9 @@
+{
+  "name": "com.defender.mcp_server",
+  "description": "MCP Server Native Messaging Host",
+  "path": "",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://nlgipginfcfjbkeilighikmiekfhfkpf/"
+  ]
+}
