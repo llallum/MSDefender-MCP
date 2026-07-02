@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Browser Session Cookie Utility for Defender Only",
     "description": "For MCP Server of Defender",
-    "version": "0.0.1",
+    "version": "1.0.2",
     "action": {
       "default_popup": "index.html"
     },

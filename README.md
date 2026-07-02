@@ -341,6 +341,13 @@ MIT
 
 ## Changelog
 
+### v1.0.2 *(2026-07-02)*
+
+- feat: `browser-extension` — added `PingIndicator` component with animated ping/pong status indicator
+- feat: `browser-extension/App.tsx` — pong message listener now updates UI via `PingIndicator` (green pulse when pong received, resets after 5s)
+- feat: `browser-extension/native-messaging.ts` — pong handler now forwards pong events to the React UI via `chrome.runtime.sendMessage`
+- chore: bumped `browser-extension` manifest and package version to `1.0.2`
+
 ### v1.0.1 *(2026-07-02)*
 
 - fix: `child.js` — added `NODE_TLS_REJECT_UNAUTHORIZED=0` to bypass TLS certificate validation for HTTPS requests

@@ -78,6 +78,11 @@ function connectToNativePort(name:string){
                 function(msg){
                     if (msg?.type === 'pong'){
                         console.log(msg);
+                        chrome.runtime.sendMessage({
+                            source: '[background.js] native-messaging.ts',
+                            type: 'pong',
+                            data: msg.data
+                        })
                     } else if (msg?.type === 'pipe_client_success'){
                         serverStatus.clientSize = msg.data;
                         chrome.runtime.sendMessage({
