@@ -15,8 +15,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PROJECT_DIR    = __dirname;
-const MAIN_JS        = path.join(PROJECT_DIR, 'src', 'main.js');
-const MCP_SERVER     = path.join(PROJECT_DIR, 'src', 'mcp-server.js');
+const MAIN_JS        = path.join(PROJECT_DIR, 'src', 'server', 'main.js');
+const MCP_SERVER     = path.join(PROJECT_DIR, 'src', 'client', 'mcp-server.js');
 const MANIFEST       = path.join(PROJECT_DIR, 'manifest.json');
 const EXTENSION_DIR  = path.join(PROJECT_DIR, '..', 'extension');
 
@@ -42,13 +42,13 @@ function updateManifest() {
   console.log('\n[1/2] Updating manifest.json...');
 
   if (!fs.existsSync(MAIN_JS)) {
-    fail(`src/main.js not found at: ${MAIN_JS}`);
+    fail(`src/server/main.js not found at: ${MAIN_JS}`);
     fail('Make sure you are running this installer from the project root directory.');
     process.exit(1);
   }
 
   if (!fs.existsSync(MCP_SERVER)) {
-    fail(`src/mcp-server.js not found at: ${MCP_SERVER}`);
+    fail(`src/client/mcp-server.js not found at: ${MCP_SERVER}`);
     fail('Make sure you are running this installer from the project root directory.');
     process.exit(1);
   }

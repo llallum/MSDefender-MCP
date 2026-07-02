@@ -4,20 +4,20 @@ import path from "path";
 import { stderr } from "process";
 import { fileURLToPath } from "url";
 
-import { Defender } from "./core/defender.js";
-import { startPipeServer } from "./utils/pipeServer.js";
+import { Defender } from "../core/defender.js";
+import { startPipeServer } from "../utils/pipeServer.js";
 import {
     sendResponse,
     saveToJson,
     readJson,
     log,
     __log
-  } from "./utils/utils.js";
-import { handleMessage, handleMcpMessage } from "./utils/messageHandler.js";
+  } from "../utils/utils.js";
+import { handleMessage, handleMcpMessage } from "../utils/messageHandler.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DEFENDER_JSON = path.resolve(path.join(__dirname), 'defender.json');
+const DEFENDER_JSON = path.resolve(path.join(__dirname, '..'), 'defender.json');
 
 let SOURCE = path.resolve(__dirname, __filename);
 let defenderInstance = null;
@@ -106,4 +106,3 @@ process.on('unhandledRejection', (reason, promise)=> {
 
 startPipeServer();            // Initialize Pipe Server where MCP server will connects
 __log(`[child.js] Started Pipe Server`);
-

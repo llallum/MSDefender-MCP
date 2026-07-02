@@ -7,9 +7,9 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { ListToolsRequestSchema, CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
-import { TOOLS, TOOLS_BY_NAME } from "./core/tools.js";
-import {sendToPipe} from "./utils/pipeClient.js";              //Connect to Pipe Server
-import { __log } from "./utils/utils.js";
+import { TOOLS, TOOLS_BY_NAME } from "../core/tools.js";
+import {sendToPipe} from "../utils/pipeClient.js";              //Connect to Pipe Server
+import { __log } from "../utils/utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
