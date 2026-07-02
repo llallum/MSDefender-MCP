@@ -47,7 +47,9 @@ MSDefender-MCP/
 │       │   ├── main.js       ← Native Messaging Host entry point
 │       │   └── child.js      ← Child process (Defender client)
 │       ├── client/
-│       │   └── mcp-server.js ← MCP Server entry point (stdio transport)
+│       │   ├── mcp-server.js ← MCP Server entry point (stdio transport)
+│       │   ├── test.js       ← Test script for child process / tool invocations
+│       │   └── debug-client.js ← MCP JSON-RPC debug client
 │       ├── core/
 │       │   ├── defender.js       ← Defender class (all API methods)
 │       │   ├── endpoints.js      ← API endpoint URL constants
@@ -322,6 +324,14 @@ MIT
 ---
 
 ## Changelog
+
+### v1.0.1 *(2026-07-02)*
+
+- fix: `child.js` — added `NODE_TLS_REJECT_UNAUTHORIZED=0` to bypass TLS certificate validation for HTTPS requests
+- fix: `child.js` — corrected `DEFENDER_JSON` path resolution (removed erroneous parent directory traversal)
+- feat: added `src/client/test.js` — test script for child process pipe communication and tool invocations
+- feat: added `src/client/debug-client.js` — MCP JSON-RPC debug client for local server testing
+- security: all PII removed from test scripts (emails, IDs, hostnames replaced with placeholders)
 
 ### v1.0.0 — Initial Release *(2026-07-02)*
 
