@@ -3,10 +3,10 @@ import { Wifi } from "lucide-react";
 import { Label , DefaultButton} from "@fluentui/react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import PingIndicator from "./PingIndicator";
 
 const App =() => {
 
-    const [scrResponse, setScrResponse] = useState<string | null>(null);
     const [status, setStatus] = useState<boolean>(false);
     const [serverStatus, setServerStatus] = useState<boolean>(false);
     const [clients, setClients] = useState<number>(0);
@@ -47,9 +47,11 @@ const App =() => {
         const listener = (msg: any) =>{
             if (msg.type === 'health_check'){
                 const {clientSize, connected} = msg.data;
-
                 setClients(clientSize);
                 setServerStatus(connected);
+            } else if (msg.type === 'pong'){
+                setStatus(true);
+                setTimeout(()=> setStatus(false), 5000);
             }
         }
 
@@ -156,16 +158,17 @@ You many now connect the Claude / Cline / Zoo Code in VSCode.
 | \`allowed_origins\` mismatch | Ensure the Extension ID in the JSON matches the ID shown above |
 | Connection drops immediately | Check that the MCP server executable is running |
 | Cookies not captured | Make sure you are logged into \`https://security.microsoft.com\` first |
+| Pong not received for an extended period | Ensure the MCP server is running and responsive, or restart both the browser extension and MCP server |
 
 `
 
     return (
         <main>
-            
             <h1>MCP Server for MS Defender XDR</h1>
             <div style={{display: "flex", alignItems: "center", gap: "8px"}}>
                 <Wifi color={serverStatus ? "green" : "red"}/>
                 <Label>{serverStatus ? "Connected" : "Disconnected"}</Label>
+                <PingIndicator active={status}/>
             </div>
             <DefaultButton onClick={startServer}>{serverStatus ? "Stop" :  "Start"}</DefaultButton>
             <Label>Clients connected: {serverStatus ? clients : 0}</Label>
