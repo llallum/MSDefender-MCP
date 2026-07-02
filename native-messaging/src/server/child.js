@@ -15,9 +15,11 @@ import {
   } from "../utils/utils.js";
 import { handleMessage, handleMcpMessage } from "../utils/messageHandler.js";
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // Disable TLS certificate validation for HTTPS requests
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DEFENDER_JSON = path.resolve(path.join(__dirname, '..'), 'defender.json');
+const DEFENDER_JSON = path.resolve(path.join(__dirname), 'defender.json');
 
 let SOURCE = path.resolve(__dirname, __filename);
 let defenderInstance = null;
