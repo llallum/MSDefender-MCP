@@ -1,2 +1,2 @@
 @echo off
-node.exe "%~dp0src\main.js" %*
+node.exe "%~dp0src\server\main.js" %*
