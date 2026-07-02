@@ -43,9 +43,11 @@ MSDefender-MCP/
 │   ├── package.json      ← Node.js dependencies
 │   ├── run.bat           ← Launcher wrapper
 │   └── src/
-│       ├── main.js           ← Native Messaging Host entry point
-│       ├── mcp-server.js     ← MCP Server entry point
-│       ├── child.js          ← Child process (Defender client)
+│       ├── server/
+│       │   ├── main.js       ← Native Messaging Host entry point
+│       │   └── child.js      ← Child process (Defender client)
+│       ├── client/
+│       │   └── mcp-server.js ← MCP Server entry point (stdio transport)
 │       ├── core/
 │       │   ├── defender.js       ← Defender class (all API methods)
 │       │   ├── endpoints.js      ← API endpoint URL constants
@@ -304,11 +306,11 @@ Chrome Extension
 
 | Problem | Solution |
 |---------|----------|
-| Chrome extension not connecting | Ensure `manifest.json` path points to `src/main.js` and the registry key is set. Re-run `install.bat`. |
+| Chrome extension not connecting | Ensure `manifest.json` path points to `src/server/main.js` and the registry key is set. Re-run `install.bat`. |
 | Registry write failed | Run `install.bat` as Administrator |
 | `defender.json` not found | Open Defender in Chrome and click the extension icon to send credentials |
 | Node.js version errors | This project requires **Node.js v20**. Run `node --version` to check |
-| MCP tools not appearing | Reload VSCode after updating MCP config. Confirm `node src/mcp-server.js` runs without errors |
+| MCP tools not appearing | Reload VSCode after updating MCP config. Confirm `node src/client/mcp-server.js` runs without errors |
 | Credentials expired | Re-authenticate via the Chrome extension to refresh the session |
 
 ---
@@ -316,3 +318,18 @@ Chrome Extension
 ## License
 
 MIT
+
+---
+
+## Changelog
+
+### v1.0.0 — Initial Release *(2026-07-02)*
+
+- Initial public release
+- Native messaging host MCP server with 40+ Microsoft Defender XDR tools
+- Chrome browser extension for session capture (TypeScript + React, Manifest V3)
+- Named pipe IPC architecture (`server/main.js` ↔ `server/child.js` ↔ `client/mcp-server.js`)
+- DuckDB integration for local device timeline analysis
+- Alert source auto-detection (MDE, MDI, MDO, MCAS, AAD)
+- Compatible with Zoo Code (Roo), Cline, Claude Desktop, and Claude.ai Console
+- `src/` layout mirrors source: `server/`, `client/`, `core/`, `utils/` subfolders
