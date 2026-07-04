@@ -359,7 +359,7 @@ export class Defender {
             let result = sortBy(body, 'auditId');
 
             output.push(...result);
-            if (result.length==100)
+            if (result.length==pageSize)
                 return this.getIncidentAuditHistory(incidentId, pageSize, output);
 
             return output;
