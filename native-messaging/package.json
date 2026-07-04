@@ -4,12 +4,8 @@
   "description": "Microsoft Defender XDR MCP Server — Native Messaging Host",
   "type": "module",
   "dependencies": {
-    "@azure/identity": "^4.8.0",
     "@duckdb/node-api": "^1.5.3-r.2",
     "@modelcontextprotocol/sdk": "^1.29.0",
-    "azure-kusto-data": "^6.0.3",
-    "azure-kusto-ingest": "^6.0.3",
-    "glob": "^13.0.6",
     "lodash": "^4.17.21"
   }
 }

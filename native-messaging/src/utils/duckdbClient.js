@@ -1,11 +1,8 @@
 import path from "node:path";
-import {glob} from "glob";
-import { table } from "node:console";
 import { access , mkdir, readdir} from "node:fs/promises";
 import duckdb, { DuckDBConnection, DuckDBInstance } from "@duckdb/node-api";
 import { fileURLToPath } from "url";
 import { __log } from "./utils.js";
-import { read } from "node:fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
