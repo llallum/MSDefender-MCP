@@ -1,0 +1,103 @@
+name: Release
+
+# Triggers:
+#   1. Push a tag like v1.0.5           -> automatic release build
+#   2. Manually run from the Actions tab -> lets you pick a version without tagging first
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 1.0.5). Leave blank to use native-messaging/package.json version."
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    # windows-latest is required because native-messaging/node_modules contains
+    # platform-specific native bindings (e.g. @duckdb/node-api) that must match
+    # the Windows target this project runs on.
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # ── Determine version ────────────────────────────────────────────────
+      - name: Resolve release version
+        id: version
+        shell: pwsh
+        run: |
+          $version = "${{ github.event.inputs.version }}"
+          if ([string]::IsNullOrWhiteSpace($version)) {
+            if ($env:GITHUB_REF -like "refs/tags/v*") {
+              $version = $env:GITHUB_REF -replace "refs/tags/v", ""
+            } else {
+              $pkg = Get-Content native-messaging/package.json | ConvertFrom-Json
+              $version = $pkg.version
+            }
+          }
+          echo "VERSION=$version" >> $env:GITHUB_ENV
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+
+      # ── Build the Chrome extension ───────────────────────────────────────
+      - name: Install extension dependencies
+        working-directory: browser-extension
+        run: npm ci
+
+      - name: Build extension (webpack)
+        working-directory: browser-extension
+        run: npm run build
+
+      - name: Zip browser extension (dist only)
+        shell: pwsh
+        run: |
+          $zipName = "defender-mcp-browser-extension-v${{ steps.version.outputs.version }}.zip"
+          Compress-Archive -Path "browser-extension/dist/*" -DestinationPath $zipName
+          echo "EXT_ZIP=$zipName" >> $env:GITHUB_ENV
+
+      # ── Package the native messaging host ────────────────────────────────
+      - name: Install native-messaging production dependencies (bundled runtime)
+        working-directory: native-messaging
+        run: npm ci --omit=dev
+
+      - name: Zip native-messaging (with node_modules / runtime bundled)
+        shell: pwsh
+        run: |
+          $zipName = "defender-mcp-native-messaging-v${{ steps.version.outputs.version }}-with-runtime.zip"
+          $exclude = @('.git', '*.log')
+          Compress-Archive -Path "native-messaging/*" -DestinationPath $zipName -Force
+          echo "NATIVE_FULL_ZIP=$zipName" >> $env:GITHUB_ENV
+
+      - name: Remove node_modules for lightweight package
+        shell: pwsh
+        run: Remove-Item -Recurse -Force "native-messaging/node_modules"
+
+      - name: Zip native-messaging (source only, no runtime)
+        shell: pwsh
+        run: |
+          $zipName = "defender-mcp-native-messaging-v${{ steps.version.outputs.version }}-source-only.zip"
+          Compress-Archive -Path "native-messaging/*" -DestinationPath $zipName -Force
+          echo "NATIVE_SRC_ZIP=$zipName" >> $env:GITHUB_ENV
+
+      # ── Publish GitHub Release ────────────────────────────────────────────
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: "v${{ steps.version.outputs.version }}"
+          generate_release_notes: true
+          files: |
+            ${{ env.EXT_ZIP }}
+            ${{ env.NATIVE_FULL_ZIP }}
+            ${{ env.NATIVE_SRC_ZIP }}
