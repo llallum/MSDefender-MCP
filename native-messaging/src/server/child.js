@@ -15,7 +15,7 @@ import {
   } from "../utils/utils.js";
 import { handleMessage, handleMcpMessage } from "../utils/messageHandler.js";
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // Disable TLS certificate validation for HTTPS requests
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // Disable TLS certificate validation for HTTPS requests  
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -108,3 +108,5 @@ process.on('unhandledRejection', (reason, promise)=> {
 
 startPipeServer();            // Initialize Pipe Server where MCP server will connects
 __log(`[child.js] Started Pipe Server`);
+
+

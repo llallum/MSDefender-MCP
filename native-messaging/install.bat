@@ -12,9 +12,6 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-:: Change to the directory containing this script so npm finds package.json
-cd /d "%~dp0"
-
 :: Run npm install first
 echo [..] Installing npm dependencies...
 call npm install

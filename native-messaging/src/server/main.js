@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 //import { nativeMessages } from "../utils/browserMessages.js";
 import { encode } from "punycode";
 //import { __log } from "../utils/utils.js";
-//import { CHILD_MESSAGE_HANDLER } from "../core/toolHandler.js";
+//import { CHILD_MESSAGE_HANDLER } from "./core/toolHandler.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -65,3 +65,4 @@ try {
   } catch (e) {
     await sendMessage(encodeMessage(e));
   }
+  

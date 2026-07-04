@@ -9,14 +9,14 @@ import {
 const {sortBy} = pkg;
 import { readJson, log, __log } from "../utils/utils.js";
 import { ENDPOINTS , BASE_URL} from "./endpoints.js";
-import { ALERT_ID_PATTERNS , determineSource} from "./alertAnalyzer/alertIdPatterns.js";
+import { ALERT_ID_PATTERNS , determineSource} from "./sources/alertIdPatterns.js";
 import { HttpClient } from "../utils/httpClient.js";
-import { analyzeMDOAlert } from "./alertAnalyzer/mdo.js";
-import { analyzeMDEAlert, MDEClass } from "./alertAnalyzer/mde.js";
-import { analyzeMCASAlert } from "./alertAnalyzer/mcas.js";
-import { analyzeMDIAlert , MDIClass} from "./alertAnalyzer/mdi.js";
-import { analyzeAADAlert } from "./alertAnalyzer/aad.js";
-import MSGraph from "./alertAnalyzer/msgraph.js";
+import { analyzeMDOAlert } from "./sources/mdo.js";
+import { analyzeMDEAlert, MDEClass } from "./sources/mde.js";
+import { analyzeMCASAlert } from "./sources/mcas.js";
+import { analyzeMDIAlert , MDIClass} from "./sources/mdi.js";
+import { analyzeAADAlert } from "./sources/aad.js";
+import MSGraph from "./sources/msgraph.js";
 import { broadcastToMCP } from "../utils/pipeServer.js";
 import { DuckDatabase } from "../utils/duckdbClient.js";
 
@@ -557,8 +557,8 @@ export class Defender {
 
         let id = /[a-f0-9]{40}/;
         let idType = "SenseMachineId";
-        if (!id.test(senseMachineId))
-            idType = "Name";
+ //       if (!id.test(senseMachineId))
+ //           idType = "Name";
         try {
             const {body} = await this.httpClient.get(request_page, {
                 machineId: senseMachineId, 

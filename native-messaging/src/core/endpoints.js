@@ -58,7 +58,10 @@ export const ENDPOINTS = {
 
     DEVICE_INFO                 : "/apiproxy/mtp/getMachine/machines",
     DEVICE_TOTAL_INVENTORY      : "/apiproxy/mtp/ndr/machines/deviceTotals",
-    DEVICE_SOFTWARE_INVENTORY   : "/apiproxy/mtp/tvm/analytics/assets/{deviceId}/installations/",
+    DEVICE_SOFTWARE_INVENTORY   : "/apiproxy/mtp/tvm/analytics/assets/{senseMachineId}/installations/",
+    DEVICE_MISSING_KBS          : "/apiproxy/mtp/tvm/analytics/assets/{senseMachineId}/missingKbs/",
+    DEVICE_RESPONSE_PERMISSIONS : "/apiproxy/mtp/responseApiPortal/requests/permissions",
+    DEVICE_RESPONSE_ACTIONS     : "/apiproxy/mtp/responseApiPortal/requests/create",
 
     MSGRAPH_USERS               : "/apiproxy/msgraph/v1.0/users/",
     MSGRAPH_GROUPS              : "/apiproxy/msgraph/v1.0/groups/",

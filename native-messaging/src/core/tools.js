@@ -499,7 +499,11 @@ export const TOOLS = [
         inputSchema: {
             type: "object",
             properties: {
-                senseMachineId: {type: "string", description: "The sense machine ID of the device to be retrieved. It is 40 hexadecimal characters. If not 40 hexadecimal characters, Name will be used which can be an IP address or hostname."},
+                senseMachineId: {
+                    type: "string", 
+                    description: `The sense machine ID of the device to be retrieved. It is 40 hexadecimal characters. `,
+                    pattern: "^[a-fA-F0-9]{40}$"    
+                },
                 }
         },
      //   childMessageType: "get_device_info_by_id_or_hostname",
@@ -509,12 +513,12 @@ export const TOOLS = [
         })
     }, 
     {
-        name: "get_software_inventory_by_device_id",
+        name: "get_device_software_inventory",
         description: "Retrieve software inventory of a device by device ID.",
         inputSchema: {
             type: "object",
             properties: {
-                deviceId: {type: "string", description: "The ID of the device where the software inventory details will be retrieved. It is 40 hexadecimal characters."},
+                senseMachineId: {type: "string", description: "The ID of the device where the software inventory details will be retrieved. It is 40 hexadecimal characters."},
                 pageIndex: {type: "number", description: "The current page index of the result", default: 1},
                 pageSize: {type: "number", description: "The size of page to be retrieved of", default: 100}
             }  
@@ -522,11 +526,46 @@ export const TOOLS = [
    //     childMessageType: "get_software_inventory_by_device_id",
         // childResultType: "software_inventory_result",
         buildPayload: (args) => ({
-            deviceId: args.deviceId,
+            senseMachineId: args.senseMachineId,
             pageIndex: args.pageIndex || 1,
             pageSize: args.pageSize || 100
         })
     }, 
+    {
+        name: "get_device_missing_kbs", 
+        description: "Retrieve missing KBs of a device by device ID.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                senseMachineId: {type: "string", description: "The ID of the device where the missing KBs details will be retrieved. It is 40 hexadecimal characters."},
+                pageIndex: {type: "number", description: "The current page index of the result", default: 1},
+                pageSize: {type: "number", description: "The size of page to be retrieved of", default: 100}
+            }
+        },
+   //     childMessageType: "get_missing_kbs_by_device_id", 
+        // childResultType: "missing_kbs_result",
+        buildPayload: (args) => ({
+            senseMachineId: args.senseMachineId,
+            pageIndex: args.pageIndex || 1,
+            pageSize: args.pageSize || 100
+        })
+    },
+    {   name: "get_device_response_permissions",
+        description: "Retrieve the response permissions of a device by device ID.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                senseMachineId: {type: "string", description: "The ID of the device where the response permissions will be retrieved. It is 40 hexadecimal characters."},
+                tenantIds: {type: "string", description: "The IDs of the tenants for which to retrieve response permissions, separated by commas.", default: ''}
+            },
+        },
+    //    childMessageType: "get_response_permissions_by_device_id",   
+        // childResultType: "response_permissions_result",
+        buildPayload: (args) => ({
+            senseMachineId: args.senseMachineId,
+            tenantIds: args.tenantIds || ''
+        })
+    },
     {
         name: "msgraph_get_users",
         description: "Search users in Microsoft Graph with specific filter and selected properties",

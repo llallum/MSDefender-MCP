@@ -40,7 +40,8 @@ export class HttpClient {
                 let errorBody = null;
                 try {
                     errorBody = await res.json();
-                    console.log(errorBody);
+                    ___log(`[httpClient.js] POST Error : ${res?.status} ${res?.statusText || 'unknown'} | body: ${JSON.stringify(errorBody)}`);
+                 //   console.log(errorBody);
                 } catch(_){}
                 return {success: res.ok, status: res?.status, body: errorBody || res?.statusText};
             }
@@ -55,6 +56,7 @@ export class HttpClient {
         } catch(err) {
 //            console.log(`POST Error : ${err?.status} ${err?.statusText || 'unknown'}`);
 //            throw err;
+            ___log(`[httpClient.js] POST Error : ${err?.status} ${err?.statusText || 'unknown'}`);
             throw err;
         }
         finally {

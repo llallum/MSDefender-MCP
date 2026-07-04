@@ -22,7 +22,7 @@ const request = {
         },
         name: "get_associated_devices_by_incident_id",
         arguments: {
-            "incidentId": "<INCIDENT_ID>"
+            "incidentId": 98682
             }
     }
 };
