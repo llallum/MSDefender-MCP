@@ -5,6 +5,8 @@
  *  1. Updating manifest.json to use the correct absolute path (main.js)
  *  2. Writing the Chrome Native Messaging Host registry entry
  *  3. Configuring Claude Desktop MCP config (claude_desktop_config.json)
+ *  4. Printing the MCP server JSON config block for other MCP clients
+ *     (Zoo Code / Roo, Cline, etc.) to copy/paste manually
  */
 
 import { execSync } from 'child_process';
@@ -43,7 +45,7 @@ function writeJson(filePath, data) {
 // ─── Step 1: Update manifest.json ───────────────────────────────────────────
 
 function updateManifest() {
-  console.log('\n[1/3] Updating manifest.json...');
+  console.log('\n[1/4] Updating manifest.json...');
 
   if (!fs.existsSync(MAIN_JS)) {
     fail(`main.js not found at: ${MAIN_JS}`);
@@ -67,7 +69,7 @@ function updateManifest() {
 // ─── Step 2: Write Windows Registry entry ───────────────────────────────────
 
 function registerNativeHost() {
-  console.log('\n[2/3] Registering Chrome Native Messaging Host...');
+  console.log('\n[2/4] Registering Chrome Native Messaging Host...');
 
   try {
     execSync(
@@ -88,7 +90,7 @@ function registerNativeHost() {
 // ─── Step 3: Configure Claude Desktop ───────────────────────────────────────
 
 function configureClaudeDesktop() {
-  console.log('\n[3/3] Configuring Claude Desktop MCP...');
+  console.log('\n[3/4] Configuring Claude Desktop MCP...');
 
   // Ensure the Claude config directory exists
   if (!fs.existsSync(CLAUDE_CONFIG_DIR)) {
@@ -119,7 +121,32 @@ function configureClaudeDesktop() {
 
   writeJson(CLAUDE_CONFIG_FILE, config);
   log(`Claude Desktop config saved: ${CLAUDE_CONFIG_FILE}`);
-  log(`MCP entry: { command: "node", args: ["${MCP_SERVER}"] }`);
+}
+
+// ─── Step 4: Print MCP config for other clients (Roo/Cline/etc.) ────────────
+
+function printMcpConfig() {
+  console.log('\n[4/4] MCP server configuration for other MCP clients...');
+
+  const mcpConfigBlock = {
+    mcpServers: {
+      'defender-mcp': {
+        command: 'node',
+        args: [MCP_SERVER]
+      }
+    }
+  };
+
+  const jsonOutput = JSON.stringify(mcpConfigBlock, null, 2);
+
+  console.log(`
+  For Zoo Code (Roo) or Cline in VSCode, or any other MCP-compatible
+  client, copy the JSON block below into your MCP settings file:
+
+------------------------------------------------------------
+${jsonOutput}
+------------------------------------------------------------
+`);
 }
 
 // ─── Main ────────────────────────────────────────────────────────────────────
@@ -132,13 +159,16 @@ console.log(`\n  Project directory: ${PROJECT_DIR}`);
 updateManifest();
 registerNativeHost();
 configureClaudeDesktop();
+printMcpConfig();
 
-console.log('\n============================================================');
+console.log('============================================================');
 console.log(' Installation complete!');
 console.log('============================================================');
 console.log(`
   Next steps:
-  1. Run 'npm install' if you haven't already.
-  2. Restart Google Chrome for the Native Messaging Host to take effect.
-  3. Restart Claude Desktop for the MCP server to appear.
+  1. Restart Google Chrome for the Native Messaging Host to take effect.
+  2. Restart Claude Desktop for the MCP server to appear (config was
+     applied automatically).
+  3. For Zoo Code (Roo), Cline, or other MCP clients, copy the JSON
+     config block printed above into your MCP settings file.
 `);
