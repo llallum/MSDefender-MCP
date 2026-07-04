@@ -67,15 +67,17 @@ jobs:
           echo "EXT_ZIP=$zipName" >> $env:GITHUB_ENV
 
       # ── Package the native messaging host ────────────────────────────────
+      # Note: native-messaging/package-lock.json is not committed to this repo
+      # (see .gitignore), so `npm ci` cannot be used here — `npm install` is
+      # used instead to resolve and install production dependencies.
       - name: Install native-messaging production dependencies (bundled runtime)
         working-directory: native-messaging
-        run: npm ci --omit=dev
+        run: npm install --omit=dev
 
       - name: Zip native-messaging (with node_modules / runtime bundled)
         shell: pwsh
         run: |
           $zipName = "defender-mcp-native-messaging-v${{ steps.version.outputs.version }}-with-runtime.zip"
-          $exclude = @('.git', '*.log')
           Compress-Archive -Path "native-messaging/*" -DestinationPath $zipName -Force
           echo "NATIVE_FULL_ZIP=$zipName" >> $env:GITHUB_ENV
 
