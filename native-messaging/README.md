@@ -41,7 +41,6 @@ MSDefender-MCP/
 │   ├── install.js        ← Installer script
 │   ├── manifest.json     ← Chrome Native Messaging Host manifest
 │   ├── package.json      ← Node.js dependencies
-│   ├── run.bat           ← Launcher wrapper
 │   └── src/
 │       ├── server/
 │       │   ├── main.js       ← Native Messaging Host entry point
@@ -54,7 +53,7 @@ MSDefender-MCP/
 │       │   ├── tools.js          ← MCP tool definitions
 │       │   ├── toolHandler.js    ← Tool call → Defender method mapping
 │       │   ├── alertTypes.js     ← Alert type constants
-│       │   └── alertAnalyzer/
+│       │   └── sources/
 │       │       ├── alertIdPatterns.js  ← Alert ID → source detection
 │       │       ├── mde.js              ← MDE alert analyzer + device timeline
 │       │       ├── mdi.js              ← MDI alert analyzer
@@ -72,6 +71,7 @@ MSDefender-MCP/
 │           ├── duckdbClient.js     ← DuckDB client for timeline analysis
 │           ├── timelineStorage.js  ← Device timeline JSONL storage
 │           ├── incidentStatusValues.js ← Incident status enums
+│           ├── qParser.js          ← Query parameter parsing utility
 │           └── utils.js            ← General utilities
 │
 └── browser-extension/    ← Chrome Extension source (TypeScript + React)
@@ -270,11 +270,11 @@ The `get_defender_alert_info` tool automatically identifies the alert source fro
 
 | Source | Prefix | Analyzer |
 |--------|--------|----------|
-| **MDE** (Microsoft Defender for Endpoint) | `da`, `ed` | `alertAnalyzer/mde.js` |
-| **MDI** (Microsoft Defender for Identity) | `aa` | `alertAnalyzer/mdi.js` |
-| **MDO** (Microsoft Defender for Office 365) | `fa` | `alertAnalyzer/mdo.js` |
-| **MCAS** (Microsoft Defender for Cloud Apps) | `ca`, `ma` | `alertAnalyzer/mcas.js` |
-| **AAD** (Azure AD Identity Protection) | `ib` | `alertAnalyzer/aad.js` |
+| **MDE** (Microsoft Defender for Endpoint) | `da`, `ed` | `sources/mde.js` |
+| **MDI** (Microsoft Defender for Identity) | `aa` | `sources/mdi.js` |
+| **MDO** (Microsoft Defender for Office 365) | `fa` | `sources/mdo.js` |
+| **MCAS** (Microsoft Defender for Cloud Apps) | `ca`, `ma` | `sources/mcas.js` |
+| **AAD** (Azure AD Identity Protection) | `ib` | `sources/aad.js` |
 
 ---
 
