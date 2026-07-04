@@ -43,7 +43,6 @@ MSDefender-MCP/
 │   ├── install.js        ← Installer script
 │   ├── manifest.json     ← Chrome Native Messaging Host manifest
 │   ├── package.json      ← Node.js dependencies
-│   ├── run.bat           ← Launcher wrapper
 │   └── src/
 │       ├── server/
 │       │   ├── main.js       ← Native Messaging Host entry point
@@ -58,7 +57,7 @@ MSDefender-MCP/
 │       │   ├── tools.js          ← MCP tool definitions
 │       │   ├── toolHandler.js    ← Tool call → Defender method mapping
 │       │   ├── alertTypes.js     ← Alert type constants
-│       │   └── alertAnalyzer/
+│       │   └── sources/
 │       │       ├── alertIdPatterns.js  ← Alert ID → source detection
 │       │       ├── mde.js              ← MDE alert analyzer + device timeline
 │       │       ├── mdi.js              ← MDI alert analyzer
@@ -76,6 +75,7 @@ MSDefender-MCP/
 │           ├── duckdbClient.js     ← DuckDB client for timeline analysis
 │           ├── timelineStorage.js  ← Device timeline JSONL storage
 │           ├── incidentStatusValues.js ← Incident status enums
+│           ├── qParser.js          ← Query parameter parsing utility
 │           └── utils.js            ← General utilities
 │
 └── browser-extension/    ← Chrome Extension source (TypeScript + React)
@@ -242,14 +242,14 @@ The Claude.ai web console supports MCP via the **MCP Remote** proxy. Run the MCP
 | `get_defender_hunting_query_schemas` | List available Advanced Hunting tables |
 | `get_defender_table_documentation` | Get schema and examples for a specific table |
 | `run_defender_hunting_query` | Run a KQL query in Advanced Hunting |
-| `run_azure_datalake_hunting_query` | Run a KQL query against Azure Data Lake |
+| `run_azure_datalake_hunting_query` | Run a KQL query against Azure Data Lake (ARG/Entra tables) |
 
 ### Device Timeline & Forensics
 
 | Tool | Description |
 |------|-------------|
 | `search_device_timeline` | Search device timeline events with filters |
-| `download_raw_device_timeline` | Download full device timeline to local JSONL storage |
+| `download_raw_device_timeline` | Download full device timeline into local storage for DuckDB querying |
 | `init_duckdb` | Initialize DuckDB for local timeline analysis |
 | `create_duckdb_table` | Create a DuckDB table from downloaded timeline data |
 | `get_raw_table_summary` | Get summary/schema of a DuckDB timeline table |
@@ -260,10 +260,12 @@ The Claude.ai web console supports MCP via the **MCP Remote** proxy. Run the MCP
 
 | Tool | Description |
 |------|-------------|
-| `get_device_info_by_senseMachineId` | Look up a device by SenseMachineId or hostname |
+| `get_device_info_by_senseMachineId` | Look up a device by SenseMachineId |
 | `get_associated_devices_by_incident_id` | Get all devices associated with an incident |
 | `get_device_inventory_by_category` | Get device inventory by category (Endpoint, IoT, OT, etc.) |
-| `get_software_inventory_by_device_id` | Get software inventory for a device |
+| `get_device_software_inventory` | Get software inventory for a device |
+| `get_device_missing_kbs` | Get missing security updates (KBs) for a device |
+| `get_device_response_permissions` | Get response action permissions for a device |
 
 ### Identity & Users
 
@@ -299,11 +301,11 @@ The `get_defender_alert_info` tool automatically identifies the alert source fro
 
 | Source | Prefix | Analyzer |
 |--------|--------|----------|
-| **MDE** (Microsoft Defender for Endpoint) | `da`, `ed` | `alertAnalyzer/mde.js` |
-| **MDI** (Microsoft Defender for Identity) | `aa` | `alertAnalyzer/mdi.js` |
-| **MDO** (Microsoft Defender for Office 365) | `fa` | `alertAnalyzer/mdo.js` |
-| **MCAS** (Microsoft Defender for Cloud Apps) | `ca`, `ma` | `alertAnalyzer/mcas.js` |
-| **AAD** (Azure AD Identity Protection) | `ib` | `alertAnalyzer/aad.js` |
+| **MDE** (Microsoft Defender for Endpoint) | `da`, `ed` | `sources/mde.js` |
+| **MDI** (Microsoft Defender for Identity) | `aa` | `sources/mdi.js` |
+| **MDO** (Microsoft Defender for Office 365) | `fa` | `sources/mdo.js` |
+| **MCAS** (Microsoft Defender for Cloud Apps) | `ca`, `ma` | `sources/mcas.js` |
+| **AAD** (Azure AD Identity Protection) | `ib` | `sources/aad.js` |
 
 ---
 
@@ -367,6 +369,19 @@ MIT
 ---
 
 ## Changelog
+
+### v1.0.4 *(2026-07-04)*
+
+- refactor: renamed `core/alertAnalyzer/` folder to `core/sources/` for clarity
+- feat: added `src/utils/qParser.js` — query parameter/filter string parser utility
+- feat: `endpoints.js` — added `DEVICE_MISSING_KBS`, `DEVICE_RESPONSE_PERMISSIONS`, and `DEVICE_RESPONSE_ACTIONS` endpoint constants
+- feat: `toolHandler.js` / `tools.js` — renamed `get_software_inventory_by_device_id` to `get_device_software_inventory`; added new tools `get_device_missing_kbs` and `get_device_response_permissions`
+- fix: `run_azure_datalake_hunting_query` handler now correctly passes `workspace` parameter instead of an unused `maxRecordCount`
+- fix: `get_device_info_by_senseMachineId` handler now references `args.senseMachineId` correctly (was `args.machineId`)
+- fix: `defender.js` — `getIncidentAuditHistory` pagination now compares against the actual `pageSize` instead of a hardcoded `100`
+- fix: `duckdbClient.js` — removed noisy `console.log` of DuckDB version/config on every instantiation
+- chore: removed unused `src/utils/browserMessages.js`
+- chore: removed `run.bat` launcher wrapper (no longer required)
 
 ### v1.0.3 *(2026-07-02)*
 

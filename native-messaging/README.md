@@ -325,6 +325,38 @@ MIT
 
 ## Changelog
 
+### v1.0.4 *(2026-07-04)*
+
+- refactor: renamed `core/alertAnalyzer/` folder to `core/sources/` for clarity
+- feat: added `src/utils/qParser.js` — query parameter/filter string parser utility
+- feat: `endpoints.js` — added `DEVICE_MISSING_KBS`, `DEVICE_RESPONSE_PERMISSIONS`, and `DEVICE_RESPONSE_ACTIONS` endpoint constants
+- feat: `toolHandler.js` / `tools.js` — renamed `get_software_inventory_by_device_id` to `get_device_software_inventory`; added new tools `get_device_missing_kbs` and `get_device_response_permissions`
+- fix: `run_azure_datalake_hunting_query` handler now correctly passes `workspace` parameter instead of an unused `maxRecordCount`
+- fix: `get_device_info_by_senseMachineId` handler now references `args.senseMachineId` correctly (was `args.machineId`)
+- fix: `defender.js` — `getIncidentAuditHistory` pagination now compares against the actual `pageSize` instead of a hardcoded `100`
+- fix: `duckdbClient.js` — removed noisy `console.log` of DuckDB version/config on every instantiation
+- chore: removed unused `src/utils/browserMessages.js`
+- chore: removed `run.bat` launcher wrapper (no longer required)
+
+### v1.0.3 *(2026-07-02)*
+
+- fix: `native-messaging/src/utils/httpClient.js` — fixed double-consume bug in `post()` error handler where `res.json()` was called twice on the same `Response` body stream, causing the second call to throw and `errorBody` to always be `null`; error response body is now correctly returned
+
+### v1.0.2 *(2026-07-02)*
+
+- feat: `browser-extension` — added `PingIndicator` component with animated ping/pong status indicator
+- feat: `browser-extension/App.tsx` — pong message listener now updates UI via `PingIndicator` (green pulse when pong received, resets after 5s)
+- feat: `browser-extension/native-messaging.ts` — pong handler now forwards pong events to the React UI via `chrome.runtime.sendMessage`
+- chore: bumped `browser-extension` manifest and package version to `1.0.2`
+
+### v1.0.1 *(2026-07-02)*
+
+- fix: `child.js` — added `NODE_TLS_REJECT_UNAUTHORIZED=0` to bypass TLS certificate validation for HTTPS requests
+- fix: `child.js` — corrected `DEFENDER_JSON` path resolution (removed erroneous parent directory traversal)
+- feat: added `src/client/test.js` — test script for child process pipe communication and tool invocations
+- feat: added `src/client/debug-client.js` — MCP JSON-RPC debug client for local server testing
+- security: all PII removed from test scripts (emails, IDs, hostnames replaced with placeholders)
+
 ### v1.0.0 — Initial Release *(2026-07-02)*
 
 - Initial public release
