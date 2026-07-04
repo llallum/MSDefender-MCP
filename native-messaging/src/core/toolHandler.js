@@ -373,17 +373,38 @@ export const CHILD_MESSAGE_HANDLER = {
             data: deviceInventories
         }
     },
-    "get_software_inventory_by_device_id" : async(args) => {
+    "get_device_software_inventory" : async(args) => {
 
         const defender = await getDefender();
-        const softwareInventories = await defender.getSoftwareInventoryByDeviceId(args.deviceId, args.pageIndex, args.pageSize);
+        const softwareInventories = await defender.getSoftwareInventoryByDeviceId(args.senseMachineId, args.pageIndex, args.pageSize);
         return {
             source: SOURCE,
     //        type: "software_inventory_result",
-            msg: `software inventories for device ID ${args.deviceId}`,
+            msg: `software inventories for device ID ${args.senseMachineId}`,
             data: softwareInventories
         }
     },
+    "get_device_missing_kbs" : async(args) => {
+        const defender = await getDefender();
+        const missingKbs = await defender.mdeClass.getDeviceMissingKBs(args.senseMachineId, args.pageIndex, args.pageSize);
+        return {
+            source: SOURCE,
+    //        type: "device_missing_kbs_result",
+            msg: `missing KBs for device ID ${args.senseMachineId}`,
+            data: missingKbs
+        }
+    },
+    "get_device_response_permissions" : async(args) => {
+        const defender = await getDefender();
+        const responsePermissions = await defender.mdeClass.getResponsePermissions(args.senseMachineId, args.tenantIds);
+        return {
+            source: SOURCE,
+    //        type: "device_response_permissions_result",
+            msg: `response permissions for device ID ${args.senseMachineId}`,
+            data: responsePermissions
+        }
+    },        
+
     "msgraph_get_users" : async(args) => {
 
         const defender = await getDefender();

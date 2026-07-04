@@ -1,231 +1,335 @@
-# Defender MCP Server
+# MSDefender-MCP
 
-A **Model Context Protocol (MCP) server** that integrates with **Microsoft Defender** and **Microsoft Graph** APIs. It supports two modes of operation:
+A **Model Context Protocol (MCP) server** that integrates with **Microsoft Defender XDR** and **Microsoft Graph** APIs — **no API token required**. Authentication is handled via a Chrome browser extension that captures your active Defender session cookies.
 
-1. **Native Messaging Host** — communicates with a Chrome extension via Chrome's Native Messaging API
-2. **MCP Server** — exposes Defender tools directly to MCP-compatible AI clients (e.g., VSCode with Roo/Cline)
+> **Compatible with:** [Zoo Code (Roo)](https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.roo-cline) · [Cline](https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev) · [Claude Desktop](https://claude.ai/download) · [Claude.ai Console](https://console.anthropic.com) · Any MCP-compatible AI client
+
+---
+
+## How It Works
+
+```
+Chrome Browser                    Your Machine
+┌─────────────────┐              ┌──────────────────────────────────────┐
+│ browser-        │  Native      │ native-messaging/                    │
+│ extension/      │◄────────────►│   src/main.js    (entry point)       │
+│                 │  Messaging   │   src/child.js   (Defender client)   │
+│ Captures your   │              │   src/mcp-server.js (MCP server)     │
+│ Defender session│              └──────────────────────────────────────┘
+│ cookies & sends │                          │
+│ them to the     │                          │ MCP Protocol (stdio)
+│ native host     │                          ▼
+└─────────────────┘              ┌──────────────────────────────────────┐
+                                 │ Any MCP Client:                      │
+                                 │  • Zoo Code (Roo) in VSCode          │
+                                 │  • Cline in VSCode                   │
+                                 │  • Claude Desktop                    │
+                                 │  • Claude.ai Console                 │
+                                 └──────────────────────────────────────┘
+```
+
+The Chrome extension intercepts your authenticated Defender session and forwards the session headers to the native messaging host. The MCP server then uses those headers to make API calls to Microsoft Defender XDR on your behalf.
+
+---
+
+## Repository Structure
+
+```
+MSDefender-MCP/
+├── native-messaging/     ← MCP Server + Native Messaging Host (Node.js)
+│   ├── install.bat       ← Double-click installer (Windows)
+│   ├── install.js        ← Installer script
+│   ├── manifest.json     ← Chrome Native Messaging Host manifest
+│   ├── package.json      ← Node.js dependencies
+│   ├── run.bat           ← Launcher wrapper
+│   └── src/
+│       ├── server/
+│       │   ├── main.js       ← Native Messaging Host entry point
+│       │   └── child.js      ← Child process (Defender client)
+│       ├── client/
+│       │   └── mcp-server.js ← MCP Server entry point (stdio transport)
+│       ├── core/
+│       │   ├── defender.js       ← Defender class (all API methods)
+│       │   ├── endpoints.js      ← API endpoint URL constants
+│       │   ├── tools.js          ← MCP tool definitions
+│       │   ├── toolHandler.js    ← Tool call → Defender method mapping
+│       │   ├── alertTypes.js     ← Alert type constants
+│       │   └── alertAnalyzer/
+│       │       ├── alertIdPatterns.js  ← Alert ID → source detection
+│       │       ├── mde.js              ← MDE alert analyzer + device timeline
+│       │       ├── mdi.js              ← MDI alert analyzer
+│       │       ├── mdo.js              ← MDO email threat analyzer
+│       │       ├── mcas.js             ← MCAS cloud app threat analyzer
+│       │       ├── aad.js              ← AAD alert analyzer
+│       │       └── msgraph.js          ← MS Graph user/identity queries
+│       └── utils/
+│           ├── httpClient.js       ← HTTP client (cookie-based auth)
+│           ├── nativeMessaging.js  ← Chrome Native Messaging protocol
+│           ├── pipeClient.js       ← Named pipe client
+│           ├── pipeServer.js       ← Named pipe server
+│           ├── messageHandler.js   ← Message routing
+│           ├── state.js            ← Shared state (pending requests)
+│           ├── duckdbClient.js     ← DuckDB client for timeline analysis
+│           ├── timelineStorage.js  ← Device timeline JSONL storage
+│           ├── incidentStatusValues.js ← Incident status enums
+│           └── utils.js            ← General utilities
+│
+└── browser-extension/    ← Chrome Extension source (TypeScript + React)
+    ├── manifest.json         ← Chrome extension manifest (MV3)
+    ├── package.json          ← Node.js dependencies (TypeScript, Webpack, React)
+    ├── tsconfig.json         ← TypeScript configuration
+    ├── webpack.config.js     ← Webpack bundler config
+    ├── plans/
+    │   └── INSTALLATION.md   ← Extension installation guide
+    └── src/
+        ├── index.html            ← Side panel HTML shell
+        ├── background/
+        │   ├── index.ts              ← Background service worker entry
+        │   ├── native-messaging.ts   ← Chrome Native Messaging bridge
+        │   ├── sentinel-apiproxy.ts  ← Defender session header capture
+        │   └── sidepanel.ts          ← Side panel message handler
+        ├── content/
+        │   └── index.ts              ← Content script (page-level injection)
+        └── react/
+            ├── index.tsx             ← React app entry point
+            └── components/
+                └── App.tsx           ← Main React UI component
+```
 
 ---
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) **v20** (v20 is the tested and recommended version; other versions may not work correctly)
-- A **Microsoft Defender** tenant with API access
-- A **Chrome browser** (if using the Native Messaging Host mode)
-- **[Visual Studio Code](https://code.visualstudio.com/)** with the [Roo](https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.roo-cline) or [Cline](https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev) extension (if using MCP Server mode)
+- **Node.js v20** — [Download](https://nodejs.org/)
+- **Google Chrome** browser
+- **Microsoft Defender XDR** access (any licensed user)
+- **One of the following MCP clients:**
+  - [Zoo Code (Roo)](https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.roo-cline) — VSCode extension
+  - [Cline](https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev) — VSCode extension
+  - [Claude Desktop](https://claude.ai/download) — Desktop app
+  - [Claude.ai Console](https://console.anthropic.com) — Web-based (requires MCP proxy)
 
 ---
 
-## Folder Structure
+## Quick Install
 
-This release contains two folders:
+### Step 1 — Load the Chrome Extension
 
-```
-<release-root>/
-├── extension\       ← Chrome extension (load unpacked in Chrome)
-└── defender-mcp\    ← MCP server (run install.bat from here)
-```
+1. Open Chrome and go to `chrome://extensions`
+2. Enable **Developer Mode** (top-right toggle)
+3. Click **Load unpacked**
+4. Select the `browser-extension/` folder
 
----
+### Step 2 — Install the Native Messaging Host
 
-## Quick Install (Recommended)
-
-The installer automatically:
-
-1. Runs `npm install` to install dependencies
-2. Updates `manifest.json` with the correct absolute path to `src/main.js`
-3. Writes the Chrome Native Messaging Host registry key under `HKCU\SOFTWARE\Google\Chrome\NativeMessagingHosts\`
-
-### Steps
-
-1. **Load the Chrome extension** — open `chrome://extensions`, enable **Developer Mode**, click **Load unpacked**, and select the `extension\` folder.
-
-2. **Run the installer** — double-click `install.bat` inside the `defender-mcp\` folder, or run it from the terminal:
+Navigate to the `native-messaging/` folder and run:
 
 ```cmd
 install.bat
 ```
 
-3. **Restart Chrome** for the Native Messaging Host registry entry to take effect.
+This will:
+1. Run `npm install` to install Node.js dependencies
+2. Update `manifest.json` with the correct absolute path to `src/main.js`
+3. Write the Chrome Native Messaging Host registry key
 
-4. **Configure VSCode MCP** — see [Manual Installation step 4](#4-configure-vscode-mcp-roo--cline) below.
+> **Note:** If the registry step fails, right-click `install.bat` → **Run as administrator**.
 
-That's it! The installer handles everything else automatically.
+### Step 3 — Configure Your MCP Client
 
-> **Note:** If the registry step fails, try running `install.bat` as Administrator (right-click → *Run as administrator*).
+#### Zoo Code (Roo) or Cline — VSCode
 
----
-
-## Manual Installation
-
-If you prefer to set things up manually, follow the steps below.
-
-### 1. Install dependencies
-
-```bash
-npm install
-```
-
-### 2. Update `manifest.json`
-
-Update the `path` field in `manifest.json` to the absolute path of `src/main.js` on your machine:
-
-```json
-{
-  "name": "com.defender.mcp_server",
-  "description": "MCP Server Native Messaging Host",
-  "path": "C:\\path\\to\\mcp\\src\\main.js",
-  "type": "stdio",
-  "allowed_origins": ["chrome-extension://nlgipginfcfjbkeilighikmiekfhfkpf/"]
-}
-```
-
-> The installer (`install.js`) sets this automatically.
-
-### 3. Register the Chrome Native Messaging Host
-
-Create a `.reg` file with the following content and double-click to import it:
-
-```reg
-Windows Registry Editor Version 5.00
-
-[HKEY_CURRENT_USER\SOFTWARE\Google\Chrome\NativeMessagingHosts\com.defender.mcp_server]
-@="C:\\path\\to\\mcp\\manifest.json"
-```
-
-> Update the value to match the actual path to your `manifest.json`. Restart Chrome after importing.
-
-### 4. Configure VSCode MCP (Roo / Cline)
-
-Open the VSCode Command Palette (`Ctrl+Shift+P`) and search for **"Roo: Open MCP Settings"** (or **"Cline: Open MCP Settings"**). Add the `defender-mcp` entry to the `mcpServers` object:
+Open the VSCode Command Palette (`Ctrl+Shift+P`) → **"Roo: Open MCP Settings"** (or **"Cline: MCP Servers"**) and add:
 
 ```json
 {
   "mcpServers": {
     "defender-mcp": {
       "command": "node",
-      "args": ["C:\\path\\to\\mcp\\src\\mcp-server.js"]
+      "args": ["C:\\path\\to\\native-messaging\\src\\mcp-server.js"]
     }
   }
 }
 ```
 
-> Update the path to match your actual project directory. Reload VSCode after saving — the Defender tools will appear automatically in the MCP tools list.
+#### Claude Desktop
 
----
+Edit `%APPDATA%\Claude\claude_desktop_config.json`:
 
-## Configuration
+```json
+{
+  "mcpServers": {
+    "defender-mcp": {
+      "command": "node",
+      "args": ["C:\\path\\to\\native-messaging\\src\\mcp-server.js"]
+    }
+  }
+}
+```
 
-### Defender Credentials
+Restart Claude Desktop after saving.
 
-The server reads Defender API credentials from `src/defender.json`. This file is populated automatically when the Chrome extension sends headers via Native Messaging.
+#### Claude.ai Console
+
+The Claude.ai web console supports MCP via the **MCP Remote** proxy. Run the MCP server locally and expose it via `mcp-remote` or a compatible tunnel, then add the remote URL in the Claude console settings.
+
+> **Note:** Update all paths above to match your actual installation directory.
+
+### Step 4 — Authenticate
+
+1. Open Chrome and navigate to [Microsoft Defender XDR](https://security.microsoft.com)
+2. Sign in with your Microsoft account
+3. Click the **Defender MCP** extension icon — it will capture your session and send it to the native host
+4. The MCP tools will now be available in VSCode
 
 ---
 
 ## Available MCP Tools
 
-Once connected via MCP, the following tools are available:
-
 ### Incident Management
 
 | Tool | Description |
 |------|-------------|
-| `get_defender_incidents` | Get Defender incidents; supports lookback days, date range, pagination, and machine ID filtering |
-| `get_defender_incident_by_id` | Get full details of a specific incident by ID |
+| `get_defender_incidents` | Get incidents with filtering by date, severity, machine ID, IP, URL, hash |
+| `get_defender_incident_by_id` | Get full details of a specific incident |
 | `get_defender_incident_audit_logs` | Get audit log history for an incident |
-| `get_defender_incident_associated_alerts_cnt` | Get the count of alerts associated with one or more incidents |
-| `get_defender_incident_associated_alerts` | Get paginated alerts associated with a specific incident |
-| `set_defender_incident_comment` | Post a comment (text or HTML) to one or more incidents |
+| `get_defender_associated_alerts_count` | Get alert count for one or more incidents |
+| `get_defender_associated_alerts` | Get paginated alerts for an incident |
+| `update_defender_incident_status` | Update incident status, severity, classification |
+| `set_defender_incident_comment` | Post a comment to one or more incidents |
 
 ### Alert Management
 
 | Tool | Description |
 |------|-------------|
-| `analyze_alert_by_id` | Deep-analyze a Defender alert by ID — auto-detects source (MDE, MDI, MDO, MCAS) and returns structured details |
-| `set_defender_alert_comment` | Post a text comment to a specific alert |
+| `get_defender_alert_info` | Deep-analyze an alert by ID (auto-detects MDE/MDI/MDO/MCAS/AAD) |
+| `set_defender_alert_comment` | Post a comment to a specific alert |
+| `link_alert_to_incident` | Link alerts to an incident with a reason |
 
 ### Hunting & Investigation
 
 | Tool | Description |
 |------|-------------|
-| `run_defender_hunting_query` | Run a KQL query in Microsoft Defender Advanced Hunting with configurable time range and record limit |
+| `get_defender_hunting_query_schemas` | List available Advanced Hunting tables |
+| `get_defender_table_documentation` | Get schema and examples for a specific table |
+| `run_defender_hunting_query` | Run a KQL query in Advanced Hunting |
+| `run_azure_datalake_hunting_query` | Run a KQL query against Azure Data Lake |
+
+### Device Timeline & Forensics
+
+| Tool | Description |
+|------|-------------|
+| `search_device_timeline` | Search device timeline events with filters |
+| `download_raw_device_timeline` | Download full device timeline to local JSONL storage |
+| `init_duckdb` | Initialize DuckDB for local timeline analysis |
+| `create_duckdb_table` | Create a DuckDB table from downloaded timeline data |
+| `get_raw_table_summary` | Get summary/schema of a DuckDB timeline table |
+| `run_sql_query` | Run SQL queries against local DuckDB timeline data |
+| `mark_device_timeline_event` | Mark/unmark a timeline event as notable |
 
 ### Device Management
 
 | Tool | Description |
 |------|-------------|
-| `get_associated_devices_by_incident_id` | Get full device details for all devices associated with an incident |
-| `get_device_info_by_sense_machine_id_or_hostname` | Look up a device by its 40-char hex SenseMachineId, hostname, or IP address |
-| `get_device_inventory_by_category` | Get device inventory totals filtered by category (Endpoint, IoT, OT, NetworkDevice, Medical, BMS, Unknown) |
-| `get_software_inventory_by_device_id` | Get paginated software inventory for a specific device |
+| `get_device_info_by_senseMachineId` | Look up a device by SenseMachineId or hostname |
+| `get_associated_devices_by_incident_id` | Get all devices associated with an incident |
+| `get_device_inventory_by_category` | Get device inventory by category (Endpoint, IoT, OT, etc.) |
+| `get_software_inventory_by_device_id` | Get software inventory for a device |
 
-### Microsoft Graph (Users & Identity)
+### Identity & Users
 
 | Tool | Description |
 |------|-------------|
-| `msgraph_get_users` | Search Azure AD users with OData `$filter` and `$select` support; includes pagination via skip token |
-| `msgraph_get_user_authentication_methods` | Get registered authentication methods for a user by their Azure AD object ID (GUID) |
+| `search_mdi_identities` | Search Microsoft Defender for Identity users |
+| `search_mdi_identity_by_radius_user_id` | Look up identity by Radius user ID |
+| `get_mdi_service_accounts_list` | List Active Directory service accounts |
+| `msgraph_get_users` | Search Azure AD users with OData filter support |
+| `msgraph_get_groups` | Search Azure AD groups |
+| `msgraph_get_user_authentication_methods` | Get MFA/auth methods for a user |
+
+### Threat Intelligence
+
+| Tool | Description |
+|------|-------------|
+| `get_threat_analytics` | Get threat analytics reports with filtering |
+| `get_threat_analytics_report_by_id` | Get full threat analytics report details |
+| `get_url_overview_information` | Get domain/URL threat intelligence |
+
+### AI Security
+
+| Tool | Description |
+|------|-------------|
+| `sec4ai_get_local_agents` | List local AI agents (Copilot, Claude, etc.) on devices |
+| `sec4ai_get_local_agent_info` | Get details of a specific local AI agent |
 
 ---
 
 ## Alert Source Detection
 
-The `analyze_alert_by_id` tool automatically identifies the alert source from the alert ID prefix and routes to the appropriate analyzer:
+The `get_defender_alert_info` tool automatically identifies the alert source from the alert ID prefix:
 
-| Source | Prefix Pattern | Analyzer |
-|--------|---------------|----------|
-| **MDE** (Microsoft Defender for Endpoint) | `da` / `ed` | `alertAnalyzer/mde.js` |
+| Source | Prefix | Analyzer |
+|--------|--------|----------|
+| **MDE** (Microsoft Defender for Endpoint) | `da`, `ed` | `alertAnalyzer/mde.js` |
 | **MDI** (Microsoft Defender for Identity) | `aa` | `alertAnalyzer/mdi.js` |
 | **MDO** (Microsoft Defender for Office 365) | `fa` | `alertAnalyzer/mdo.js` |
-| **MCAS** (Microsoft Defender for Cloud Apps) | `ca` / `ma` | `alertAnalyzer/mcas.js` |
-| **MS Graph** | — | `alertAnalyzer/msgraph.js` |
+| **MCAS** (Microsoft Defender for Cloud Apps) | `ca`, `ma` | `alertAnalyzer/mcas.js` |
+| **AAD** (Azure AD Identity Protection) | `ib` | `alertAnalyzer/aad.js` |
 
 ---
 
-## Project Structure
+## Architecture
+
+The server uses a **named pipe IPC** architecture:
 
 ```
-mcp/
-├── install.bat                  # Double-click installer (Windows)
-├── install.js                   # Installer script (Node.js)
-├── run.bat                      # Launcher wrapper for Chrome Native Messaging
-├── manifest.json                # Chrome Native Messaging Host manifest
-├── package.json                 # Node.js dependencies
-├── src/
-│   ├── main.js                  # Native Messaging Host entry point
-│   ├── mcp-server.js            # MCP Server entry point
-│   ├── child.js                 # Child process — initializes Defender client
-│   ├── defender.json            # Defender API credentials (auto-generated)
-│   ├── core/
-│   │   ├── defender.js          # Defender class — all API methods
-│   │   ├── endpoints.js         # API endpoint URL constants
-│   │   ├── tools.js             # MCP tool definitions (schema + payload builders)
-│   │   ├── toolHandler.js       # Message handlers — maps tool calls to Defender methods
-│   │   ├── kusto.js             # Azure Data Explorer (Kusto) client
-│   │   ├── alertTypes.js        # Alert type constants and mappings
-│   │   └── alertAnalyzer/
-│   │       ├── alertIdPatterns.js   # Alert ID prefix → source detection
-│   │       ├── mde.js               # MDE alert analyzer + device inventory/software
-│   │       ├── mdi.js               # MDI alert analyzer (SAMR, DCSync, etc.)
-│   │       ├── mdo.js               # MDO alert analyzer (email threats)
-│   │       ├── mcas.js              # MCAS alert analyzer (cloud app threats)
-│   │       └── msgraph.js           # MS Graph user/identity queries
-│   └── utils/
-│       ├── httpClient.js            # HTTP client (GET/POST/PATCH with cookie auth)
-│       ├── nativeMessaging.js       # Chrome Native Messaging protocol framing
-│       ├── browserMessages.js       # Browser message type definitions
-│       ├── pipeClient.js            # Named pipe client utility
-│       ├── pipeServer.js            # Named pipe server utility
-│       └── utils.js                 # General utilities (JSON I/O, logging)
+Chrome Extension
+      │ Native Messaging
+      ▼
+  main.js  ──fork──►  child.js  ◄──── defender.json (session)
+                          │
+                    pipeServer.js  (named pipe: \\.\pipe\defender-mcp)
+                          │
+                    pipeClient.js
+                          │
+                    mcp-server.js  ◄──── VSCode / AI Client
 ```
+
+- **`main.js`** — Native Messaging Host; receives session headers from Chrome extension and forwards messages to `child.js`
+- **`child.js`** — Spawned child process; holds the Defender session and handles all API calls
+- **`mcp-server.js`** — MCP SDK server; connects to `child.js` via named pipe and exposes tools to AI clients
+- **`pipeServer.js`** / **`pipeClient.js`** — Named pipe IPC between `child.js` and `mcp-server.js`
 
 ---
 
 ## Troubleshooting
 
-- **Chrome extension not connecting** — Make sure `manifest.json` points to `src/main.js` and the registry key is correctly set. Run `install.bat` to fix this automatically.
-- **Registry write failed** — Run `install.bat` as Administrator (right-click → *Run as administrator*).
-- **`defender.json` not found** — Ensure the Chrome extension has sent credentials at least once. The file is created automatically on first use.
-- **Node.js version errors** — This project requires **Node.js v20**. Run `node --version` to check. Other versions (including v18, v22) may not work correctly.
-- **MCP tools not appearing in VSCode** — Reload VSCode (or restart the Roo/Cline extension) after updating the MCP config, and confirm `node src/mcp-server.js` runs without errors.
-- **Credentials expired** — Defender session tokens expire. Re-authenticate via the Chrome extension to refresh `src/defender.json`.
+| Problem | Solution |
+|---------|----------|
+| Chrome extension not connecting | Ensure `manifest.json` path points to `src/server/main.js` and the registry key is set. Re-run `install.bat`. |
+| Registry write failed | Run `install.bat` as Administrator |
+| `defender.json` not found | Open Defender in Chrome and click the extension icon to send credentials |
+| Node.js version errors | This project requires **Node.js v20**. Run `node --version` to check |
+| MCP tools not appearing | Reload VSCode after updating MCP config. Confirm `node src/client/mcp-server.js` runs without errors |
+| Credentials expired | Re-authenticate via the Chrome extension to refresh the session |
+
+---
+
+## License
+
+MIT
+
+---
+
+## Changelog
+
+### v1.0.0 — Initial Release *(2026-07-02)*
+
+- Initial public release
+- Native messaging host MCP server with 40+ Microsoft Defender XDR tools
+- Chrome browser extension for session capture (TypeScript + React, Manifest V3)
+- Named pipe IPC architecture (`server/main.js` ↔ `server/child.js` ↔ `client/mcp-server.js`)
+- DuckDB integration for local device timeline analysis
+- Alert source auto-detection (MDE, MDI, MDO, MCAS, AAD)
+- Compatible with Zoo Code (Roo), Cline, Claude Desktop, and Claude.ai Console
+- `src/` layout mirrors source: `server/`, `client/`, `core/`, `utils/` subfolders

@@ -2,23 +2,27 @@
 /**
  * install.js
  * Automatically installs the Defender MCP Server by:
- *  1. Updating manifest.json to use the correct absolute path to src/main.js
+ *  1. Updating manifest.json to use the correct absolute path (main.js)
  *  2. Writing the Chrome Native Messaging Host registry entry
+ *  3. Configuring Claude Desktop MCP config (claude_desktop_config.json)
  */
 
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import os from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const PROJECT_DIR    = __dirname;
-const MAIN_JS        = path.join(PROJECT_DIR, 'src', 'server', 'main.js');
-const MCP_SERVER     = path.join(PROJECT_DIR, 'src', 'client', 'mcp-server.js');
-const MANIFEST       = path.join(PROJECT_DIR, 'manifest.json');
-const EXTENSION_DIR  = path.join(PROJECT_DIR, '..', 'extension');
+const PROJECT_DIR = __dirname;
+const MAIN_JS    = path.join(PROJECT_DIR, 'src', 'main.js');
+const MANIFEST   = path.join(PROJECT_DIR, 'manifest.json');
+const MCP_SERVER = path.join(PROJECT_DIR, 'src', 'mcp-server.js');
+
+const CLAUDE_CONFIG_DIR  = path.join(os.homedir(), 'AppData', 'Roaming', 'Claude');
+const CLAUDE_CONFIG_FILE = path.join(CLAUDE_CONFIG_DIR, 'claude_desktop_config.json');
 
 const REG_KEY = 'HKCU\\SOFTWARE\\Google\\Chrome\\NativeMessagingHosts\\com.defender.mcp_server';
 
@@ -39,17 +43,10 @@ function writeJson(filePath, data) {
 // ─── Step 1: Update manifest.json ───────────────────────────────────────────
 
 function updateManifest() {
-  console.log('\n[1/2] Updating manifest.json...');
+  console.log('\n[1/3] Updating manifest.json...');
 
   if (!fs.existsSync(MAIN_JS)) {
-    fail(`src/server/main.js not found at: ${MAIN_JS}`);
-    fail('Make sure you are running this installer from the project root directory.');
-    process.exit(1);
-  }
-
-  if (!fs.existsSync(MCP_SERVER)) {
-    fail(`src/client/mcp-server.js not found at: ${MCP_SERVER}`);
-    fail('Make sure you are running this installer from the project root directory.');
+    fail(`main.js not found at: ${MAIN_JS}`);
     process.exit(1);
   }
 
@@ -60,7 +57,7 @@ function updateManifest() {
 
   if (oldPath !== MAIN_JS) {
     log(`manifest.json path updated:`);
-    log(`  was: ${oldPath || '(empty)'}`);
+    log(`  was: ${oldPath}`);
     log(`  now: ${MAIN_JS}`);
   } else {
     log('manifest.json path already correct.');
@@ -70,7 +67,7 @@ function updateManifest() {
 // ─── Step 2: Write Windows Registry entry ───────────────────────────────────
 
 function registerNativeHost() {
-  console.log('\n[2/2] Registering Chrome Native Messaging Host...');
+  console.log('\n[2/3] Registering Chrome Native Messaging Host...');
 
   try {
     execSync(
@@ -88,45 +85,60 @@ function registerNativeHost() {
   }
 }
 
+// ─── Step 3: Configure Claude Desktop ───────────────────────────────────────
+
+function configureClaudeDesktop() {
+  console.log('\n[3/3] Configuring Claude Desktop MCP...');
+
+  // Ensure the Claude config directory exists
+  if (!fs.existsSync(CLAUDE_CONFIG_DIR)) {
+    fs.mkdirSync(CLAUDE_CONFIG_DIR, { recursive: true });
+    log(`Created directory: ${CLAUDE_CONFIG_DIR}`);
+  }
+
+  // Read existing config or start fresh
+  let config = {};
+  if (fs.existsSync(CLAUDE_CONFIG_FILE)) {
+    try {
+      config = readJson(CLAUDE_CONFIG_FILE);
+      log('Existing claude_desktop_config.json found — merging.');
+    } catch {
+      warn('Existing claude_desktop_config.json is invalid JSON — overwriting.');
+      config = {};
+    }
+  } else {
+    log('No existing Claude Desktop config found — creating new one.');
+  }
+
+  if (!config.mcpServers) config.mcpServers = {};
+
+  config.mcpServers['defender-mcp'] = {
+    command: 'node',
+    args: [MCP_SERVER]   // points to src/mcp-server.js
+  };
+
+  writeJson(CLAUDE_CONFIG_FILE, config);
+  log(`Claude Desktop config saved: ${CLAUDE_CONFIG_FILE}`);
+  log(`MCP entry: { command: "node", args: ["${MCP_SERVER}"] }`);
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 console.log('============================================================');
 console.log(' Defender MCP Server -- Installer');
 console.log('============================================================');
-console.log(`\n  Project directory : ${PROJECT_DIR}`);
-console.log(`  Extension folder  : ${EXTENSION_DIR}`);
-
-if (!fs.existsSync(EXTENSION_DIR)) {
-  warn(`Extension folder not found at: ${EXTENSION_DIR}`);
-  warn('Expected folder structure:');
-  warn('  <root>/');
-  warn('    extension/   <- Chrome extension dist');
-  warn('    defender-mcp/ <- this installer');
-} else {
-  log(`Extension folder found: ${EXTENSION_DIR}`);
-}
+console.log(`\n  Project directory: ${PROJECT_DIR}`);
 
 updateManifest();
 registerNativeHost();
+configureClaudeDesktop();
 
 console.log('\n============================================================');
 console.log(' Installation complete!');
 console.log('============================================================');
 console.log(`
   Next steps:
-  1. In Chrome, go to chrome://extensions → Enable Developer Mode →
-     Load unpacked → select the 'extension' folder.
+  1. Run 'npm install' if you haven't already.
   2. Restart Google Chrome for the Native Messaging Host to take effect.
-  3. In VSCode, open the Roo or Cline MCP settings and add:
-
-     {
-       "mcpServers": {
-         "defender-mcp": {
-           "command": "node",
-           "args": ["${MCP_SERVER.replace(/\\/g, '\\\\')}"]
-         }
-       }
-     }
-
-  4. Reload VSCode for the MCP tools to appear.
+  3. Restart Claude Desktop for the MCP server to appear.
 `);
