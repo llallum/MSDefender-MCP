@@ -17,9 +17,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PROJECT_DIR = __dirname;
-const MAIN_JS    = path.join(PROJECT_DIR, 'src', 'main.js');
+const MAIN_JS    = path.join(PROJECT_DIR, 'src', 'server', 'main.js');
 const MANIFEST   = path.join(PROJECT_DIR, 'manifest.json');
-const MCP_SERVER = path.join(PROJECT_DIR, 'src', 'mcp-server.js');
+const MCP_SERVER = path.join(PROJECT_DIR, 'src', 'client', 'mcp-server.js');
 
 const CLAUDE_CONFIG_DIR  = path.join(os.homedir(), 'AppData', 'Roaming', 'Claude');
 const CLAUDE_CONFIG_FILE = path.join(CLAUDE_CONFIG_DIR, 'claude_desktop_config.json');
@@ -114,7 +114,7 @@ function configureClaudeDesktop() {
 
   config.mcpServers['defender-mcp'] = {
     command: 'node',
-    args: [MCP_SERVER]   // points to src/mcp-server.js
+    args: [MCP_SERVER]   // points to src/client/mcp-server.js
   };
 
   writeJson(CLAUDE_CONFIG_FILE, config);
