@@ -213,14 +213,14 @@ The Claude.ai web console supports MCP via the **MCP Remote** proxy. Run the MCP
 | `get_defender_hunting_query_schemas` | List available Advanced Hunting tables |
 | `get_defender_table_documentation` | Get schema and examples for a specific table |
 | `run_defender_hunting_query` | Run a KQL query in Advanced Hunting |
-| `run_azure_datalake_hunting_query` | Run a KQL query against Azure Data Lake |
+| `run_azure_datalake_hunting_query` | Run a KQL query against Azure Data Lake (ARG/Entra tables) |
 
 ### Device Timeline & Forensics
 
 | Tool | Description |
 |------|-------------|
 | `search_device_timeline` | Search device timeline events with filters |
-| `download_raw_device_timeline` | Download full device timeline to local JSONL storage |
+| `download_raw_device_timeline` | Download full device timeline into local storage for DuckDB querying |
 | `init_duckdb` | Initialize DuckDB for local timeline analysis |
 | `create_duckdb_table` | Create a DuckDB table from downloaded timeline data |
 | `get_raw_table_summary` | Get summary/schema of a DuckDB timeline table |
@@ -231,10 +231,12 @@ The Claude.ai web console supports MCP via the **MCP Remote** proxy. Run the MCP
 
 | Tool | Description |
 |------|-------------|
-| `get_device_info_by_senseMachineId` | Look up a device by SenseMachineId or hostname |
+| `get_device_info_by_senseMachineId` | Look up a device by SenseMachineId |
 | `get_associated_devices_by_incident_id` | Get all devices associated with an incident |
 | `get_device_inventory_by_category` | Get device inventory by category (Endpoint, IoT, OT, etc.) |
-| `get_software_inventory_by_device_id` | Get software inventory for a device |
+| `get_device_software_inventory` | Get software inventory for a device |
+| `get_device_missing_kbs` | Get missing security updates (KBs) for a device |
+| `get_device_response_permissions` | Get response action permissions for a device |
 
 ### Identity & Users
 
