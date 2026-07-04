@@ -164,7 +164,7 @@ export const CHILD_MESSAGE_HANDLER = {
     },
     "run_azure_datalake_hunting_query": async (args) => {
         const defender = await getDefender();
-        const queryResults = await defender.runHuntingQueryAzureDataLake(args.query, args.startTime, args.endTime, args.maxRecordCount || 10);
+        const queryResults = await defender.runHuntingQueryAzureDataLake(args.query, args.workspace, args.startTime, args.endTime);
         return {
             source: SOURCE, 
      //       type: "hunting_query_azure_datalake_results", 
@@ -192,7 +192,7 @@ export const CHILD_MESSAGE_HANDLER = {
         return {
             source: SOURCE, 
     //        type: "device_info_result", 
-            msg: `device info for machine id ${args.machineId}`, 
+            msg: `device info for machine id ${args.senseMachineId}`, 
             data: deviceInfo};
     },
     "get_associated_devices_by_incident_id" : async (args) => {

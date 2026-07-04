@@ -19,8 +19,8 @@ export class DuckDatabase {
         this.instance = null;
         this.connection = null;
         this.cacheDirectory = path.join(__dirname, '../duckdb/timelines/');
-        console.log(duckdb.version());
-        console.log(duckdb.configurationOptionDescriptions());
+//        console.log(duckdb.version());
+//        console.log(duckdb.configurationOptionDescriptions());
     }
 
     async init(){
