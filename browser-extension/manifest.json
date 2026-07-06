@@ -2,7 +2,8 @@
     "manifest_version": 3,
     "name": "Browser Session Cookie Utility for Defender Only",
     "description": "For MCP Server of Defender",
-    "version": "1.0.2",
+    "version": "1.0.3",
+    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAubhsnGXtiRNqeQX83DOcW4d53ime7rNCSES6e1XZEMSpg7YVxYoY//pgRsy0Yx4my2JyAD2OSULIHGG4Z9unN66BxJoE6ygIsZV9m/qm/HfKxMFB46SBnliis6XumwIu1uwWgwj/7cwe2ZOf5w0wmxQoCjrbVKK9av3HKCcxjziy7Dq+zj9XQ+DjIc/c8NaPqsOr8Xz2vHCwMw1czsH7+86giUuLNnTQfUGdN0c5RKJC9zrJPiWyVfA1cCEe4lbfscNn/y7uyD2nMCTlAgJylHtUo543y8rxgev/p7a6GKVTYLk7csIHW/EOzLtYQTXLP4xqYWqpAag/jFXVCpFqkwIDAQAB",
     "action": {
       "default_popup": "index.html"
     },

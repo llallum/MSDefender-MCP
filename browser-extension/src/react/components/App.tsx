@@ -89,33 +89,35 @@ This guide covers how to install the Chrome extension and configure the Windows 
 
 ---
 
-### Step 2 — Your Extension ID
+### Step 2 — Your Extension ID Is Fixed
 
-After loading, your Extension ID is shown under the extension name on the extensions page.
+This extension ships with a pinned \`"key"\` field in \`manifest.json\`, so Chrome always assigns it the **same Extension ID** — no matter which path you load it from or how many times you rebuild/reload it:
 
-> **4Extension ID:** **\`${chrome.runtime.id}\`**
+> **Extension ID:** **\`${chrome.runtime.id}\`**
 
-Copy this ID — you will need it for the Registry setup in Step 3.
+Since this ID is fixed, \`native-messaging/manifest.json\` and the installer already reference it — you do **not** need to copy/paste it anywhere for a standard install.
 
 ---
 
 ### Step 3 — Windows Registry Setup for Native Messaging
 
-#### 3a — Create the Native Host Manifest JSON
+#### 3a — Native Host Manifest JSON
 
-Create a file named \`manifest.json\` in a permanent location (e.g., \`C:\\\\mcp-server\\\\client\\\\\`):
+The repository already ships a ready-to-use manifest at \`native-messaging/manifest.json\`, pre-configured with the fixed Extension ID shown above:
 
 \`\`\`json
 {
   "name": "com.defender.mcp_server",
-  "description": "MCP Server for Microsoft Defender Session Bridge",
-  "path": "C:\\\\mcp-server\\\\client\\\\main.js",
+  "description": "MCP Server Native Messaging Host",
+  "path": "",
   "type": "stdio",
   "allowed_origins": [
     "chrome-extension://${chrome.runtime.id}/"
   ]
 }
 \`\`\`
+
+Running \`native-messaging/install.bat\` automatically fills in the \`path\` field with the absolute path to \`src/server/main.js\` — no manual editing required.
 
 #### 3b — Register in Windows Registry
 

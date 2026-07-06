@@ -3,6 +3,7 @@
  * install.js
  * Automatically installs the Defender MCP Server by:
  *  1. Updating manifest.json to use the correct absolute path (main.js)
+ *     and the fixed Chrome extension ID (allowed_origins)
  *  2. Writing the Chrome Native Messaging Host registry entry
  *  3. Configuring Claude Desktop MCP config (claude_desktop_config.json)
  *  4. Printing the MCP server JSON config block for other MCP clients
@@ -22,6 +23,11 @@ const PROJECT_DIR = __dirname;
 const MAIN_JS    = path.join(PROJECT_DIR, 'src', 'server', 'main.js');
 const MANIFEST   = path.join(PROJECT_DIR, 'manifest.json');
 const MCP_SERVER = path.join(PROJECT_DIR, 'src', 'client', 'mcp-server.js');
+
+// The Chrome extension ID is fixed via the "key" field in
+// browser-extension/manifest.json, so it no longer changes between
+// unpacked loads/rebuilds. Keep this in sync with that key.
+const EXTENSION_ID = 'kfbgidbhjkpipnhihmidgjiclfkiedff';
 
 const CLAUDE_CONFIG_DIR  = path.join(os.homedir(), 'AppData', 'Roaming', 'Claude');
 const CLAUDE_CONFIG_FILE = path.join(CLAUDE_CONFIG_DIR, 'claude_desktop_config.json');
@@ -55,6 +61,11 @@ function updateManifest() {
   const manifest = readJson(MANIFEST);
   const oldPath  = manifest.path;
   manifest.path  = MAIN_JS;
+
+  const expectedOrigin = `chrome-extension://${EXTENSION_ID}/`;
+  const oldOrigins = manifest.allowed_origins || [];
+  manifest.allowed_origins = [expectedOrigin];
+
   writeJson(MANIFEST, manifest);
 
   if (oldPath !== MAIN_JS) {
@@ -63,6 +74,13 @@ function updateManifest() {
     log(`  now: ${MAIN_JS}`);
   } else {
     log('manifest.json path already correct.');
+  }
+
+  if (oldOrigins.length !== 1 || oldOrigins[0] !== expectedOrigin) {
+    log(`manifest.json allowed_origins updated to fixed extension ID:`);
+    log(`  now: ${expectedOrigin}`);
+  } else {
+    log('manifest.json allowed_origins already correct.');
   }
 }
 

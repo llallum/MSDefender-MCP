@@ -239,31 +239,39 @@ export const TOOLS = [
             endTime: args.endTime,
             maxRecordCount: args.maxRecordCount || 10
         })
+    }, 
+    {
+        name: "get_azure_datalake_workspaces",
+        description: "This will retrieve the list of DataLake Workspaces (Databases) that can be used Azure DataLake Hunting",
+        inputSchema: {
+            type: "object"
+        },
+        buildPayload: () => ({})
+    }, 
+    {
+        name: "get_azure_datalake_db_entities",
+        description: "This wil retrieve the list of tables available for each database. The list of tables contains custom log sources from 3rd-party including the other Microsoft Sentinel logs.",
+        inputSchema: {
+            type: "object"
+        },
+        buildPayload: ()=> ({})
     },
     {
         name: "run_azure_datalake_hunting_query",
-        description: `Using KQL to run a hunting query in Microsoft Defender with Azure Data Lake as data source. The tables and schema in Azure Data Lake is different from Microsoft Defender Advanced Hunting. It contains ARG tables and Entra tables. Current tables are the following: 
-            ARGAuthorizationResources, 
-            ARGResourceContainers, 
-            ARGResources, 
-            EntraApplications, 
-            EntraGroupMemberships, 
-            EntraGroups, 
-            EntraMembers, 
-            EntraOrganizations, 
-            EntraServicePrincipals, 
-            EntraUsers`,
+        description: `Using KQL to run a hunting query in Microsoft Defender with Azure Data Lake as data source. The tables and schema in Azure Data Lake is different from Microsoft Defender Advanced Hunting. `,
         inputSchema: {
             type: "object",
             properties: {
+                workspace: {type: "array", description: `The workspace name where the KQL is being run. The workspace name is the combination of name and GUID concatenated with dash '-' except for the default database which only uses 'default' as database name and no GUID is needed. (eg. prd-a-uswest-ws-11059f44-58dd-4240-9986-20bfcca4d02e where name is prd-a-uswest-ws and GUID of 11059f44-58dd-4240-9986-20bfcca4d02e.)`, default:['default']},
                 query: {type: "string", description: "The KQL query to be run in Microsoft Defender Hunting"},
-                startTime: {type: "string", description: "The start time for the hunting query in ISO format, default is 7 days ago from current time"},
+                startTime: {type: "string", description: "The start time for the hunting query in ISO format, default is past 3 days ago from current time and using more than these might took a lot of time to response"},
                 endTime: {type: "string", description: "The end time for the hunting query in ISO format, default is current time"}
             }
         },
    //     childMessageType: "run_hunting_query_azure_datalake",
         // childResultType: "hunting_query_azure_datalake_results",
         buildPayload: (args) => ({
+            workspace: args.workspace,
             query: args.query,
             startTime: args.startTime,
             endTime: args.endTime

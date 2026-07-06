@@ -12,3 +12,10 @@ manifest.json
 package.json
 package-lock.json
 run.bat
+
+# Chrome extension signing key and build artifacts — never commit the
+# private key (dist.pem). dist/ and dist.crx are build outputs produced
+# by `npm run build` / "Pack extension" and are reproducible from source.
+browser-extension/dist.pem
+browser-extension/dist.crx
+browser-extension/dist/

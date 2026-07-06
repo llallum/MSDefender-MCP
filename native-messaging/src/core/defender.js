@@ -418,28 +418,61 @@ export class Defender {
 
     async getAzureDataLakeWorkspaces(){
 
-        
+        const request_page = BASE_URL + ENDPOINTS.SENTINEL_LIST_WORKSPACES;
+
+        const params = {
+            'api-version': '2024-07-01',
+            includeAll: true,
+            includeScopedActions: true
+        }
+        try{
+            const res = await this.httpClient.get(request_page, params);
+            return res;
+        }catch(err){
+            __log(err);
+            return err;
+        }
     }
 
-    async runHuntingQueryAzureDataLake(query, workspace= "default", startTime="", endTime=""){
+    async getAzureDatalakeDatabaseEntities(){
+       
+        const request_page = BASE_URL + ENDPOINTS.SENTINEL_DATALAKE_ENTITIES;
+
+        const json_body = {
+            csl: '.show databases entities'
+        }
+
+        try{
+            const res = await this.httpClient.post(request_page, json_body);
+            return res;
+        }catch(err){
+            __log(err);
+            return err;
+        }
+    }
+
+    async runHuntingQueryAzureDataLake(workspace=['default'], query, startTime="", endTime=""){
 
         const request_page = BASE_URL + ENDPOINTS.HUNTING_QUERY_AZURE_DATALAKE;
 
+        let db= workspace[0];
         if (!startTime || startTime === "") {
             let _end = new Date();
             let _start = new Date();
-            _start.setDate(_end.getDate() - 7);
+            _start.setDate(_end.getDate() - 3);
             startTime  = _start.toISOString();
             endTime = _end.toISOString();
         }
 
+        if (workspace.length > 1) db = 'default';
+    //    __log(db);
         const json_body = {
             csl : query,
-            db : workspace,
+            db : db,
             startTime : startTime,
             endTime : endTime,
             saveToQueryHistory : true,
-            workspaces: [workspace]
+            workspaces: workspace
         }
 
         const res = await this.httpClient.post(request_page, json_body);

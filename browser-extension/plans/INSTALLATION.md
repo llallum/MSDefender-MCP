@@ -36,56 +36,55 @@ This runs Webpack and outputs the compiled extension files into the `dist/` fold
 4. Select the **`dist/`** folder (the build output directory)
 5. The extension **"Browser Session Cookie Utility for Defender Only"** will appear in the list
 
-### Get Your Extension ID
+### Your Extension ID Is Fixed
 
-After loading, your Extension ID is displayed under the extension name. It looks like:
+This extension ships with a pinned RSA `"key"` field in [`manifest.json`](../manifest.json), so Chrome always assigns it the **same Extension ID**, no matter which path you load it from or how many times you rebuild/reload it:
 
 ```
-abcdefghijklmnopqrstuvwxyzabcdef
+kfbgidbhjkpipnhihmidgjiclfkiedff
 ```
 
-> ⚠️ **Important:** Copy this ID — you will need it for the Registry setup in Step 4.
+You do **not** need to look this up or copy/paste it anywhere — `native-messaging/manifest.json` and the installer (`native-messaging/install.js`) already reference this fixed ID.
 
-### How to get the Extension ID programmatically
-
-The extension itself exposes its ID via:
+You can still verify it any time via:
 
 ```javascript
-// How to properly install the MCP server?
 chrome.runtime.id
 ```
 
-You can also find it by clicking **"Details"** on the extension card — the URL will show:
+or by clicking **"Details"** on the extension card in `chrome://extensions/` — the URL will show:
 ```
-chrome://extensions/?id=YOUR_EXTENSION_ID_HERE
+chrome://extensions/?id=kfbgidbhjkpipnhihmidgjiclfkiedff
 ```
 
 ---
 
-## Step 3 — Get a Stable Extension ID (Recommended for Production)
+## Step 3 — Re-Keying the Extension (Only If Needed)
 
-By default, unpacked extensions get a **different ID each time** they are loaded from a new path. To lock the ID permanently:
+You normally **do not need this step** — the extension already has a fixed ID via the committed `"key"` in `manifest.json`, backed by the private key at [`dist.pem`](../dist.pem).
+
+Only follow this if you intentionally want to **rotate the signing key** (e.g. the private key was compromised):
 
 1. Go to `chrome://extensions/`
 2. Click **"Pack extension"**
 3. Set the **Extension root directory** to your `dist/` folder
-4. Leave the **Private key file** blank (first time)
+4. Leave the **Private key file** blank to generate a brand-new key pair
 5. Click **"Pack Extension"** — Chrome generates:
    - `dist.crx` — the packed extension
-   - `dist.pem` — your private key (keep this safe!)
-6. Open the `.pem` file, copy the base64 content between the header/footer lines
-7. Add it to [`manifest.json`](../manifest.json):
+   - `dist.pem` — your new private key (keep this safe! back it up, do not commit it to source control)
+6. Extract the public key from the new `dist.pem` (base64, SPKI/DER format) and set it as the `"key"` field in [`manifest.json`](../manifest.json):
 
 ```json
 {
   "manifest_version": 3,
   "name": "Browser Session Cookie Utility for Defender Only",
-  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...(your key here)...",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...(your new key here)...",
   ...
 }
 ```
 
-8. Rebuild (`npm run build`) and reload the extension — the ID is now **permanently fixed**
+7. Rebuild (`npm run build`) and reload the extension — Chrome will now assign a **new, different** Extension ID
+8. Update the `EXTENSION_ID` constant in `native-messaging/install.js` and `allowed_origins` in `native-messaging/manifest.json` to match the new ID, then re-run `install.bat`
 
 ---
 
@@ -97,22 +96,21 @@ Chrome requires a **Native Messaging Host manifest** registered in the Windows R
 
 ### 4a — Create the Native Host Manifest JSON
 
-Create a file named `com.defender.mcp_server.json` in a permanent location (e.g., `C:\mcp-server\`):
+The repository already ships a ready-to-use manifest at [`native-messaging/manifest.json`](../../native-messaging/manifest.json), pre-configured with the fixed Extension ID:
 
 ```json
 {
   "name": "com.defender.mcp_server",
-  "description": "MCP Server for Microsoft Defender Session Bridge",
-  "path": "C:\\mcp-server\\defender-mcp-server.exe",
+  "description": "MCP Server Native Messaging Host",
+  "path": "",
   "type": "stdio",
   "allowed_origins": [
-    "chrome-extension://YOUR_EXTENSION_ID_HERE/"
+    "chrome-extension://kfbgidbhjkpipnhihmidgjiclfkiedff/"
   ]
 }
 ```
 
-> Replace `YOUR_EXTENSION_ID_HERE` with the Extension ID from Step 2.  
-> Replace the `path` value with the actual path to your MCP server executable.
+Running `native-messaging/install.bat` automatically fills in the `path` field with the absolute path to `src/server/main.js` — no manual editing required. If you are configuring this by hand instead, replace the `path` value with the actual path to your MCP server executable.
 
 ### 4b — Register in Windows Registry
 
@@ -178,9 +176,9 @@ If the connection is successful, the status indicator in the UI will show as con
 
 | Problem | Solution |
 |---|---|
-| Extension ID changes after reload | Use the `"key"` field in `manifest.json` (see Step 3) |
+| Extension ID changes after reload | This should no longer happen — the `"key"` field in `manifest.json` fixes the ID to `kfbgidbhjkpipnhihmidgjiclfkiedff`. If it still changes, confirm the `"key"` field is present in your loaded `dist/manifest.json` |
 | Native host not found | Verify the Registry path and JSON file path are correct |
-| `allowed_origins` mismatch | Ensure the Extension ID in the JSON matches exactly |
+| `allowed_origins` mismatch | Ensure `native-messaging/manifest.json` references `chrome-extension://kfbgidbhjkpipnhihmidgjiclfkiedff/` exactly (re-run `install.bat` to fix automatically) |
 | Connection drops immediately | Check that the MCP server executable is running and the path in the JSON is correct |
 | Cookies not captured | Make sure you are logged into `https://security.microsoft.com` before starting the server |
 

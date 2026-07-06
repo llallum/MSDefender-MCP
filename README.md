@@ -126,30 +126,9 @@ MSDefender-MCP/
 4. Select the `browser-extension/dist/` folder (the built output directory)
 5. The extension **"Browser Session Cookie Utility for Defender Only"** will appear in the list
 
-### Step 2 — Get Your Extension ID and Update the Native Manifest
+> **Fixed Extension ID:** This extension ships with a pinned `"key"` field in its manifest ([`browser-extension/manifest.json`](browser-extension/manifest.json)), so it always loads with the same Extension ID — **`kfbgidbhjkpipnhihmidgjiclfkiedff`** — no matter where you load it from or how many times you rebuild/reload it. You do **not** need to look up or copy the ID yourself; `native-messaging/manifest.json` and the installer already reference this fixed ID.
 
-After loading the extension, Chrome assigns it a unique **Extension ID** (shown under the extension name on the extensions page).
-
-1. Copy your **Extension ID** (e.g. `nlgipginfcfjbkeilighikmiekfhfkpf`)
-2. Open `native-messaging/manifest.json` and update the `allowed_origins` field:
-
-```json
-{
-  "name": "com.defender.mcp_server",
-  "description": "MCP Server Native Messaging Host",
-  "path": "",
-  "type": "stdio",
-  "allowed_origins": [
-    "chrome-extension://<YOUR_EXTENSION_ID>/"
-  ]
-}
-```
-
-Replace `<YOUR_EXTENSION_ID>` with the actual ID from Step 1.
-
-> **Why?** Chrome uses this ID to verify that only your specific extension instance can communicate with the native host. If the ID does not match, the connection will be refused.
-
-### Step 3 — Install the Native Messaging Host
+### Step 2 — Install the Native Messaging Host
 
 Navigate to the `native-messaging/` folder and run:
 
@@ -160,11 +139,14 @@ install.bat
 This will:
 1. Run `npm install` to install Node.js dependencies
 2. Update `manifest.json` with the correct absolute path to `src/server/main.js`
-3. Write the Chrome Native Messaging Host registry key pointing to the updated `manifest.json`
+3. Set `allowed_origins` in `manifest.json` to `chrome-extension://kfbgidbhjkpipnhihmidgjiclfkiedff/` (the fixed Extension ID)
+4. Write the Chrome Native Messaging Host registry key pointing to the updated `manifest.json`
 
 > **Note:** If the registry step fails, right-click `install.bat` → **Run as administrator**.
+>
+> **If you re-key the extension:** should you ever regenerate `browser-extension/dist.pem` (and therefore change the `"key"` in `browser-extension/manifest.json`), the Extension ID will change too. In that case, update the `EXTENSION_ID` constant in `native-messaging/install.js` and re-run `install.bat`.
 
-### Step 4 — Configure Your MCP Client
+### Step 3 — Configure Your MCP Client
 
 #### Zoo Code (Roo) or Cline — VSCode
 
@@ -204,7 +186,7 @@ The Claude.ai web console supports MCP via the **MCP Remote** proxy. Run the MCP
 
 > **Note:** Update all paths above to match your actual installation directory.
 
-### Step 5 — Authenticate
+### Step 4 — Authenticate
 
 1. Open Chrome and navigate to [Microsoft Defender XDR](https://security.microsoft.com)
 2. Sign in with your Microsoft account
@@ -369,6 +351,14 @@ MIT
 ---
 
 ## Changelog
+
+### v1.0.5 *(2026-07-06)*
+
+- feat: `browser-extension` — pinned a fixed RSA `"key"` in `manifest.json` so the extension always loads with the same Extension ID (`kfbgidbhjkpipnhihmidgjiclfkiedff`), regardless of the unpacked folder path or how many times it's reloaded/rebuilt
+- feat: `native-messaging/manifest.json` — `allowed_origins` now references the fixed Extension ID by default
+- feat: `native-messaging/install.js` — installer now automatically writes `allowed_origins` with the fixed Extension ID (no more manual copy/paste step)
+- docs: removed the "copy your Extension ID and edit manifest.json" manual step from the Quick Install guide, since the ID is now fixed
+- chore: bumped `browser-extension` manifest and package version to `1.0.3`
 
 ### v1.0.4 *(2026-07-04)*
 

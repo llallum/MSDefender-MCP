@@ -118,7 +118,9 @@ MSDefender-MCP/
 1. Open Chrome and go to `chrome://extensions`
 2. Enable **Developer Mode** (top-right toggle)
 3. Click **Load unpacked**
-4. Select the `browser-extension/` folder
+4. Select the `browser-extension/dist/` folder (the built output directory)
+
+> **Fixed Extension ID:** This extension ships with a pinned `"key"` field in its manifest (`browser-extension/manifest.json`), so it always loads with the same Extension ID — **`kfbgidbhjkpipnhihmidgjiclfkiedff`** — no matter where you load it from or how many times you rebuild/reload it. You do **not** need to look up or copy the ID yourself.
 
 ### Step 2 — Install the Native Messaging Host
 
@@ -130,10 +132,13 @@ install.bat
 
 This will:
 1. Run `npm install` to install Node.js dependencies
-2. Update `manifest.json` with the correct absolute path to `src/main.js`
-3. Write the Chrome Native Messaging Host registry key
+2. Update `manifest.json` with the correct absolute path to `src/server/main.js`
+3. Set `allowed_origins` in `manifest.json` to `chrome-extension://kfbgidbhjkpipnhihmidgjiclfkiedff/` (the fixed Extension ID)
+4. Write the Chrome Native Messaging Host registry key
 
 > **Note:** If the registry step fails, right-click `install.bat` → **Run as administrator**.
+>
+> **If you re-key the extension:** should you ever regenerate `browser-extension/dist.pem` (and therefore change the `"key"` in `browser-extension/manifest.json`), the Extension ID will change too. In that case, update the `EXTENSION_ID` constant in `native-messaging/install.js` and re-run `install.bat`.
 
 ### Step 3 — Configure Your MCP Client
 
@@ -324,6 +329,14 @@ MIT
 ---
 
 ## Changelog
+
+### v1.0.5 *(2026-07-06)*
+
+- feat: `browser-extension` — pinned a fixed RSA `"key"` in `manifest.json` so the extension always loads with the same Extension ID (`kfbgidbhjkpipnhihmidgjiclfkiedff`), regardless of the unpacked folder path or how many times it's reloaded/rebuilt
+- feat: `native-messaging/manifest.json` — `allowed_origins` now references the fixed Extension ID by default
+- feat: `native-messaging/install.js` — installer now automatically writes `allowed_origins` with the fixed Extension ID (no more manual copy/paste step)
+- docs: removed the "copy your Extension ID and edit manifest.json" manual step from the Quick Install guide, since the ID is now fixed
+- chore: bumped `browser-extension` manifest and package version to `1.0.3`
 
 ### v1.0.4 *(2026-07-04)*
 

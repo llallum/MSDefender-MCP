@@ -25,8 +25,10 @@ This Chrome extension captures your active **Microsoft Defender XDR** session an
 1. Open Chrome and navigate to `chrome://extensions`
 2. Enable **Developer Mode** (toggle in the top-right corner)
 3. Click **Load unpacked**
-4. Select this `browser-extension/` folder
+4. Select the `browser-extension/dist/` folder (the built output directory — run `npm run build` first)
 5. The extension icon will appear in your Chrome toolbar
+
+> **Fixed Extension ID:** This extension ships with a pinned `"key"` field in [`manifest.json`](manifest.json), so it always loads with the same Extension ID — **`kfbgidbhjkpipnhihmidgjiclfkiedff`** — no matter where you load it from or how many times you rebuild/reload it. The native messaging host manifest (`native-messaging/manifest.json`) already references this fixed ID, so no manual ID copy/paste is needed.
 
 ---
 
@@ -67,6 +69,7 @@ Microsoft Defender session tokens expire periodically. When your session expires
 | "Native host not found" error | Run `install.bat` in the `native-messaging/` folder |
 | Session not being captured | Try refreshing the Defender page and clicking the icon again |
 | MCP tools return auth errors | Your session may have expired — click the extension icon to refresh |
+| `allowed_origins` mismatch / native host refuses connection | The Extension ID is fixed via the `"key"` field in `manifest.json` (`kfbgidbhjkpipnhihmidgjiclfkiedff`). If you regenerated `dist.pem`/the `"key"`, update `EXTENSION_ID` in `native-messaging/install.js` and re-run `install.bat` |
 
 ---
 

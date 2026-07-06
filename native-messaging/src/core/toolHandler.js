@@ -162,9 +162,30 @@ export const CHILD_MESSAGE_HANDLER = {
             msg: `results for hunting query`, 
             data: queryResults};
     },
+
+    "get_azure_datalake_workspaces": async (args)=> {
+        const defender = await getDefender();
+        const databases = await defender.getAzureDataLakeWorkspaces();
+
+        return {
+            source: SOURCE,
+            msg: 'list of databases for Azure DataLake Exploration',
+            data: databases
+        }
+    },
+    "get_azure_datalake_db_entities": async (args)=> {
+        const defender = await getDefender();
+        const dbEntities = await defender.getAzureDatalakeDatabaseEntities();
+
+        return {
+            source: SOURCE,
+            msg: 'details of the databases, including the tables available in each workspaces',
+            data: dbEntities
+        }
+    },
     "run_azure_datalake_hunting_query": async (args) => {
         const defender = await getDefender();
-        const queryResults = await defender.runHuntingQueryAzureDataLake(args.query, args.workspace, args.startTime, args.endTime);
+        const queryResults = await defender.runHuntingQueryAzureDataLake( args.workspace, args.query, args.startTime, args.endTime);
         return {
             source: SOURCE, 
      //       type: "hunting_query_azure_datalake_results", 

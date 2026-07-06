@@ -18,6 +18,8 @@ export const ENDPOINTS = {
     HUNTING_QUERY               : "/apiproxy/mtp/huntingService/queryExecutor",
     HUNTING_QUERY_SCHEMA        : "/apiproxy/mtp/huntingService/schema",
     HUNTING_TABLE_DOCUMENTATION : "/apiproxy/hunting/huntingService/documentation/TableDocumentation/{tableName}",
+    SENTINEL_LIST_WORKSPACES    : "/apiproxy/securityplatform/lake/databases",
+    SENTINEL_DATALAKE_ENTITIES  : "/apiproxy/securityplatform/lake/kql/v1/rest/mgmt",
     HUNTING_QUERY_AZURE_DATALAKE: "/apiproxy/securityplatform/lake/kql/v2/rest/query",
     THREAT_ANALYTICS            : "/apiproxy/mtp/threatAnalytics/outbreaks/outbreaksEnrichedDataMtp", 
     THREAT_ANALYTICS_OVERVIEW   : "/apiproxy/mtp/threatAnalytics/outbreaks/{reportId}/overview",
