@@ -224,6 +224,8 @@ The Claude.ai web console supports MCP via the **MCP Remote** proxy. Run the MCP
 | `get_defender_hunting_query_schemas` | List available Advanced Hunting tables |
 | `get_defender_table_documentation` | Get schema and examples for a specific table |
 | `run_defender_hunting_query` | Run a KQL query in Advanced Hunting |
+| `get_azure_datalake_workspaces` | List Azure Data Lake workspaces (databases) available for hunting |
+| `get_azure_datalake_db_entities` | List tables available in each Azure Data Lake workspace/database |
 | `run_azure_datalake_hunting_query` | Run a KQL query against Azure Data Lake (ARG/Entra tables) |
 
 ### Device Timeline & Forensics
@@ -358,6 +360,7 @@ MIT
 - feat: `native-messaging/manifest.json` — `allowed_origins` now references the fixed Extension ID by default
 - feat: `native-messaging/install.js` — installer now automatically writes `allowed_origins` with the fixed Extension ID (no more manual copy/paste step)
 - docs: removed the "copy your Extension ID and edit manifest.json" manual step from the Quick Install guide, since the ID is now fixed
+- docs: added missing `get_azure_datalake_workspaces` and `get_azure_datalake_db_entities` tools to the Available MCP Tools table
 - chore: bumped `browser-extension` manifest and package version to `1.0.3`
 
 ### v1.0.4 *(2026-07-04)*
