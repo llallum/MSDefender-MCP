@@ -11,7 +11,7 @@ import { readJson, log, __log } from "../utils/utils.js";
 import { ENDPOINTS , BASE_URL} from "./endpoints.js";
 import { ALERT_ID_PATTERNS , determineSource} from "./sources/alertIdPatterns.js";
 import { HttpClient } from "../utils/httpClient.js";
-import { analyzeMDOAlert } from "./sources/mdo.js";
+import { analyzeMDOAlert , MDOClass} from "./sources/mdo.js";
 import { analyzeMDEAlert, MDEClass } from "./sources/mde.js";
 import { analyzeMCASAlert } from "./sources/mcas.js";
 import { analyzeMDIAlert , MDIClass} from "./sources/mdi.js";
@@ -29,6 +29,7 @@ export class Defender {
         this.mdeClass = new MDEClass(this.httpClient);
         this.msGraph = new MSGraph(this.httpClient);
         this.mdiClass = new MDIClass(this.httpClient);
+        this.mdoClass = new MDOClass(this.httpClient);
     }
 
     refreshSession(headers){

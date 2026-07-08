@@ -9,12 +9,13 @@ export const ENDPOINTS = {
     INCIDENTS                   : "/apiproxy/mtp/incidentQueue/incidents/alerts",
     INCIDENT_DETAILS            : "/apiproxy/mtp/incidentQueue/incidents/{incidentId}",
     INCIDENT_UPDATE_COMMENT     : "/apiproxy/mtp/incidents/addComment",
+    INCIDENT_UPDATE_STATUS      : '/apiproxy/mtp/incidentUpdate/incidents',
+    INCIDENT_AUDIT_HISTORY      : '/apiproxy/mtp/auditHistory/AuditHistory',    
     ASSOCIATED_ALERTS           : '/apiproxy/mtp/alertsApiService/alerts',
     ASSOCIATED_ALERTS_COUNT     : '/apiproxy/mtp/alertsApiService/alerts/count',
     ALERT_UPDATE_COMMENT        : '/apiproxy/mtp/alertsApiService/alerts/{alertId}',
     ALERT_LINK_TO_INCIDENT      : '/apiproxy/mtp/alertsLinks/alerts/incidentLinks',
-    INCIDENT_UPDATE_STATUS      : '/apiproxy/mtp/incidentUpdate/incidents',
-    INCIDENT_AUDIT_HISTORY      : '/apiproxy/mtp/auditHistory/AuditHistory',
+
     HUNTING_QUERY               : "/apiproxy/mtp/huntingService/queryExecutor",
     HUNTING_QUERY_SCHEMA        : "/apiproxy/mtp/huntingService/schema",
     HUNTING_TABLE_DOCUMENTATION : "/apiproxy/hunting/huntingService/documentation/TableDocumentation/{tableName}",
@@ -52,6 +53,7 @@ export const ENDPOINTS = {
     MDO_EMAIL_URL_DATA          : "/apiproxy/di/Find/ThreatIntelMailUrlData",
     MDO_EMAIL_METADATA          : "/apiproxy/di/Find/MailMetaData",
     MDO_EMAIL_TIMELINE          : "/apiproxy/di/Find/EmailTimelineEvents",
+    MDO_SUBMIT_NETWORK_MSG_ID   : "/apiproxy/rs/api/ReportSubmissionApi/SubmitNetworkMessageId",
 
     MTP_ALERT_DATA              : "/apiproxy/mtp/alertsApiService/alerts/",
     MTP_INCIDENT_DEVICES        : "/apiproxy/mtp/incidentDevices/incidents/{incidentId}/devices",
@@ -64,8 +66,13 @@ export const ENDPOINTS = {
     DEVICE_MISSING_KBS          : "/apiproxy/mtp/tvm/analytics/assets/{senseMachineId}/missingKbs/",
     DEVICE_RESPONSE_PERMISSIONS : "/apiproxy/mtp/responseApiPortal/requests/permissions",
     DEVICE_RESPONSE_ACTIONS     : "/apiproxy/mtp/responseApiPortal/requests/create",
+    DEVICE_RESPONSE_STATUS      : "/apiproxy/mtp/responseApiPortal/requests/latest",
+    DEVICE_AUTOMATED_IR         : "/apiproxy/mtp/autoIr/ui/investigations/?useDotnetAutoIrUi=true",
 
     MSGRAPH_USERS               : "/apiproxy/msgraph/v1.0/users/",
+//    MSGRAPH_USER_INFO           : "/apiproxy/msgraph/v1.0/users/{userId}",
+    MSGRAPH_USER_GROUPS         : "/apiproxy/msgraph/v1.0/users/{userId}/transitiveMemberOf",
+    MSGRAPH_USER_CA_POLICIES    : "/apiproxy/msgraph/v1.0/identity/conditionalAccess/policies",
     MSGRAPH_GROUPS              : "/apiproxy/msgraph/v1.0/groups/",
     MSGRAPH_AUTHENTICATION      : "/apiproxy/msgraph/beta/reports/authenticationMethods/userRegistrationDetails/{userId}",
 

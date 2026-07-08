@@ -398,16 +398,35 @@ export class MDEClass {
 
     }
 
-    async createResponseAction(senseMachineId, osPlatform, senseClientVersion, actionType, comment) {
+        //Params = {ScanType: "Quick"}
+        //Type = "ScanRequest"
+    async runAVScan(senseMachineId, osPlatform, senseClientVersion, quickScan=true, comment) {
 
         const endpoint = BASE_URL + ENDPOINTS.DEVICE_RESPONSE_ACTIONS;
 
+        const perm = await this.getResponsePermissions(senseMachineId);
+
+        const scanPerm = perm?.Permissions?.find(p=> p.Type === 'ScanRequest');
+
+        if (!scanPerm || scanPerm.Result !== 0){
+            return {
+               success: false,
+               body: `Current user is not permitted to run AV scans on device ${senseMachineId}`,
+            }
+        }
+
         const json_body = {
             MachineId: senseMachineId,
+            RequestorComment: comment,
             OsPlatform: osPlatform,
-            senseClientVersion: senseClientVersion,
-            RequestorCommand: comment,
-            Type: actionType
+            SenseClientVersion: senseClientVersion,
+            //ExternalId : externalId,
+            //RequestSource: requestSource,
+            Params: {
+                ScanType: quickScan ? 'Quick' : 'Full'
+            },
+            Type: 'ScanRequest',
+            //tenantIds
         }
         try {
             const {body} = await this.httpClient.post(endpoint, json_body);
@@ -415,6 +434,23 @@ export class MDEClass {
         } catch(err){
             return {success: false, status: err.status , body: err?.statusText || String(err)};
         }
+    }
+
+    async getActionCenterStatus(senseMachineId, tenantIds=''){
+
+        const request_page = BASE_URL + ENDPOINTS.DEVICE_RESPONSE_STATUS;
+
+        const params = {
+            machineId : senseMachineId,
+            tenantIds : tenantIds
+        }
+        try {
+            const result = await this.httpClient.get(request_page, params);
+            return result;
+
+        } catch(err){
+            return {success: false, status: err.status , body: err?.statusText || String(err)};
+        } 
     }
 
     /*

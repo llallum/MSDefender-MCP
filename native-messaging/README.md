@@ -113,6 +113,8 @@ MSDefender-MCP/
 
 ## Quick Install
 
+> **Prefer a pre-built package?** Instead of cloning and building from source, grab the latest release from the [Releases page](../../releases). Each release ships three assets: the browser extension zip, a `native-messaging` **source-only** zip, and a `native-messaging` **with-runtime** zip that already includes `node_modules` — use the *with-runtime* package if you want to skip `npm install` entirely (handy on machines with restricted or no internet access). Extract the package(s) you need and continue from Step 1 below.
+
 ### Step 1 — Load the Chrome Extension
 
 1. Open Chrome and go to `chrome://extensions`
@@ -189,7 +191,7 @@ The Claude.ai web console supports MCP via the **MCP Remote** proxy. Run the MCP
 
 ---
 
-## Available MCP Tools
+## Available MCP Tools (45 tools)
 
 ### Incident Management
 
@@ -210,6 +212,12 @@ The Claude.ai web console supports MCP via the **MCP Remote** proxy. Run the MCP
 | `get_defender_alert_info` | Deep-analyze an alert by ID (auto-detects MDE/MDI/MDO/MCAS/AAD) |
 | `set_defender_alert_comment` | Post a comment to a specific alert |
 | `link_alert_to_incident` | Link alerts to an incident with a reason |
+
+### Email Investigation & Remediation
+
+| Tool | Description |
+|------|-------------|
+| `submit_email_to_analysis` | Submit an email (by NetworkMessageId) to Microsoft as Phishing/Malware/Spam/Not Junk, with False Positive/Negative reason and confidence level |
 
 ### Hunting & Investigation
 
@@ -244,6 +252,8 @@ The Claude.ai web console supports MCP via the **MCP Remote** proxy. Run the MCP
 | `get_device_software_inventory` | Get software inventory for a device |
 | `get_device_missing_kbs` | Get missing security updates (KBs) for a device |
 | `get_device_response_permissions` | Get response action permissions for a device |
+| `run_av_scan` | Trigger a Quick or Full antivirus scan on a device |
+| `get_action_response_status` | Get the live status of response actions (AV scan, isolation, investigation package, etc.) for a device |
 
 ### Identity & Users
 
@@ -254,6 +264,8 @@ The Claude.ai web console supports MCP via the **MCP Remote** proxy. Run the MCP
 | `get_mdi_service_accounts_list` | List Active Directory service accounts |
 | `msgraph_get_users` | Search Azure AD users with OData filter support |
 | `msgraph_get_groups` | Search Azure AD groups |
+| `msgraph_get_user_group` | List the Azure AD/Entra groups a user transitively belongs to |
+| `msgraph_get_user_ca_policies` | Get Conditional Access policies scoped to a user's security groups |
 | `msgraph_get_user_authentication_methods` | Get MFA/auth methods for a user |
 
 ### Threat Intelligence
@@ -324,6 +336,16 @@ Chrome Extension
 
 ---
 
+## Roadmap
+
+- **License-aware tool loading (`TenantContext`)** — introduce a `TenantContext` module that queries the connected tenant's active Microsoft 365 / Defender licenses (e.g. Defender for Endpoint P1/P2, Defender for Office 365 P1/P2, Defender for Identity, Defender for Cloud Apps) during session initialization. `TOOLS` served via `ListToolsRequestSchema` in `src/client/mcp-server.js` would then be filtered against the detected entitlements before being advertised to the MCP client — so tools that depend on an unlicensed product (e.g. `search_mdi_identities` without Defender for Identity, `sec4ai_get_local_agents` without the relevant add-on) are never exposed or invoked in the first place.
+- **Per-tool capability metadata** — tag each entry in `src/core/tools.js` with the product/license it requires (MDE, MDO, MDI, MCAS, AAD, MS Graph, Sec4AI, etc.), so `TenantContext` can do a simple lookup instead of hardcoding per-tool rules.
+- **Graceful degradation** — when a tool is filtered out due to licensing, surface a clear, actionable error/explanation instead of a generic API failure if a client attempts to call it directly.
+- **Response-action expansion** — extend the Device Management response actions (isolate device, restrict app execution, collect investigation package) beyond the current `run_av_scan` / `get_action_response_status` pair.
+- **Automated email remediation** — follow-up actions after `submit_email_to_analysis`, such as bulk sender/domain blocking for a defined time window (already noted as planned in the tool's description).
+
+---
+
 ## License
 
 MIT
@@ -331,6 +353,21 @@ MIT
 ---
 
 ## Changelog
+
+### v1.0.6 *(2026-07-08)*
+
+- feat: `sources/mdo.js` — exported `MDOClass`; added `reportEmailViaNetworkMessageId()` to submit an email (by `networkMessageId`) to Microsoft's Report Submission API as Not Junk / Spam / Phishing / Malware, with False Positive/Negative reason and confidence level; email metadata (recipient, sender, subject) is auto-resolved via `getEmailMetadata()` before submission
+- feat: `defender.js` — wired up `mdoClass` (`MDOClass`) alongside the existing `mdeClass`, `msGraph`, and `mdiClass` instances
+- feat: `endpoints.js` — added `MDO_SUBMIT_NETWORK_MSG_ID`, `DEVICE_RESPONSE_STATUS`, `DEVICE_AUTOMATED_IR`, `MSGRAPH_USER_GROUPS`, and `MSGRAPH_USER_CA_POLICIES` endpoint constants
+- feat: `sources/mde.js` — reworked device response actions: `createResponseAction` replaced by `runAVScan()` which checks `ScanRequest` permission via `getResponsePermissions()` before submitting a Quick/Full AV scan request; added `getActionCenterStatus()` to poll the live status of response actions on a device
+- feat: `sources/msgraph.js` — added `getUserGroups()` (transitive group membership) and `getUserConditionalAccessPolicies()` (Conditional Access policies scoped to a user's security-enabled groups)
+- feat: `toolHandler.js` / `tools.js` — added new tools `run_av_scan`, `get_action_response_status`, `submit_email_to_analysis`, `msgraph_get_user_group`, and `msgraph_get_user_ca_policies` (45 tools total)
+- feat: `sources/enums.js` — new file with shared email-submission enums (`EmailSubmissionReason`, `EmailSubmissionCategory`, `EmailSubmissionType`, `EmailSubmissionObjectType`, `EmailSubmissionConfidenceLevel`)
+- fix: `mcp-server.js` — tool call results with `type: "error"` from the child process are now surfaced back to the MCP client as an explicit error response instead of being silently returned as normal content
+- fix: `messageHandler.js` — corrected `No handler found for message type` log to reference the resolved `type` variable instead of `msg?.params?.name`; `handleMessage()` now returns the error response object on failure instead of implicitly returning `undefined`
+- docs: added Roadmap section outlining planned `TenantContext` license-aware tool filtering
+- docs: updated Available MCP Tools tables and tool count (45 tools) in both README files
+- chore: bumped `native-messaging` package version to `1.0.6`
 
 ### v1.0.5 *(2026-07-06)*
 

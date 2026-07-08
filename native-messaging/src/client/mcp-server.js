@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { fork } from "child_process";
 import { fileURLToPath } from "url";
+import crypto from "crypto";
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { ListToolsRequestSchema, CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
@@ -82,7 +83,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             }, 
             onProgress,
             );
-            __log(`[mcp-server.js] Called sendToPipe`);
+
+        __log(`[mcp-server.js] Called sendToPipe`);
+
+        if (result?.type === 'error'){
+            const errorText = result?.message ?? 'Unknown error occurred while executing the tool';
+            __log(`[mcp-server.js] Error ${toolName}: ${errorText}`);
+            return {
+                content: [{type: "text", text: `Error message: ${errorText}`}],
+                isError: true
+            }
+        }
+
         return {content: [{
                     type: "text",
                     text: result?.data !== undefined && result?.data !== null

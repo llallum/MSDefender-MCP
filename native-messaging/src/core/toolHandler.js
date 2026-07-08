@@ -424,10 +424,69 @@ export const CHILD_MESSAGE_HANDLER = {
             msg: `response permissions for device ID ${args.senseMachineId}`,
             data: responsePermissions
         }
-    },        
+    },
+
+    "run_av_scan": async(args) => {
+        const defender = await getDefender();
+        const scan = await defender.mdeClass.runAVScan(
+            args.senseMachineId, 
+            args.osPlatform, 
+            args.senseClientVersion, 
+            args.quickScan, 
+            args.comment
+        );
+        //senseMachineId, osPlatform, senseClientVersion, quickScan=true, comment
+        return {
+            source: SOURCE,
+            msg: `AV scanning request to device ${args.senseMachineId}`,
+            data: scan
+        }
+    },
+    "get_action_response_status": async(args)=> {
+        const defender = await getDefender();
+        const status = await defender.mdeClass.getActionCenterStatus(args.senseMachineId, args.tenantIds);
+ 
+        return {
+            source: SOURCE,
+            msg: `Response actions status on device ${args.senseMachineId}`,
+            data: status
+        }
+    },
+
+    "submit_email_to_analysis": async(args) => {
+        const defender = await getDefender();
+        const mailStatus = await defender.mdoClass.reportEmailViaNetworkMessageId(args.networkMessageId, args.recipient, args.category, args.reason, args.confidenceLevel, args.submitter, args.tenantId);
+        
+        return {
+            source: SOURCE,
+            msg: `email submission status for the email with NetworkMessageId ${args.networkMessageId}`,
+            data: mailStatus
+        }
+    },
+
+    "msgraph_get_user_group" : async(args) => {
+        const defender = await getDefender();
+        const result  = await defender.msGraph.getUserGroups(args.userId, args.select);
+        return {
+            source: SOURCE,
+            msg: `list of groups where user ${args.userId} is currently belong`,
+            data: result
+        };
+
+    },
+    "msgraph_get_user_ca_policies": async(args) => {
+        const defender = await getDefender();
+
+        const result = await defender.msGraph.getUserConditionalAccessPolicies(args.userId);
+
+        return {
+            source: SOURCE,
+            msg: `list of conditional access policies for the user ${args.userId}`,
+            data: result
+        }
+    },
 
     "msgraph_get_users" : async(args) => {
-
         const defender = await getDefender();
         const {body} = await defender.getUsers(args.select, args.filter, args.top, args.skipToken);
 

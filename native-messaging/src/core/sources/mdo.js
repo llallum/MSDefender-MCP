@@ -1,7 +1,7 @@
 import { BASE_URL , ENDPOINTS} from "../endpoints.js";
 import { getDefender } from "../../server/child.js";
-import pkg from "lodash";
-const _ = pkg;
+ import pkg from "lodash";
+ const _ = pkg;
 
 /**
  * @param {string} base64 
@@ -63,7 +63,7 @@ function mergeArrays(arrays) {
   return Object.values(mergedObject);
 }
 
-class MDOClass {
+export class MDOClass {
 
     constructor(httpClient){
         this.httpClient = httpClient;
@@ -187,90 +187,90 @@ class MDOClass {
      * @param {string} tenantId 
      * @returns 
      */
-    async getEmailMetadata(startUtc, endUtc, data, tenantId=TENANT_ID){
+    async getEmailMetadata(startUtc, endUtc, emailEntity, tenantId=TENANT_ID){
 
-    let email_metadata = "https://security.microsoft.com/apiproxy/di/Find/MailMetaData";
-    //var headers = getMergedHeaders();
+        let email_metadata = BASE_URL + ENDPOINTS.MDO_EMAIL_METADATA;
+        //var headers = getMergedHeaders();
 
-//    console.log(data);
-    const filters = []
-    if (data.networkMessageId)
-        filters.push(`NetworkMessageId eq '${data.networkMessageId}'`)
-    if (data.recipient){
-        filters.push(`Recipients.LowercaseAnalyzed eq '${data.recipient}'`);
-    }
-
-    var result;
-    var params = {
-        "tenantid": tenantId,
-        "startTime": startUtc, 
-        "endTime": endUtc,
-        "PageSize": 100,
-        "Filter": filters.join(" and ")
-        //        "Filter": "NetworkMessageId eq '" + networkMessageId + "'"
-    }
-    let url = new URL(email_metadata);
-    url.search = new URLSearchParams(params).toString();
-    try {
-
-        const {body} = await this.httpClient.get(email_metadata, params);
-
-        result = body.ResultData ? body.ResultData.map((x)=> { return JSON.parse(x)}) : [];
-    //    console.log(json);
-    } catch (err) {
-    //    console.log("error", err);
-        return [];
-    }
-
-    if (result.length == 0)
-        return [];
-
-    return await Promise.all(result.map(async (entity) => {
-        var attachments = (entity.AttachmentData ?? []).map((x) => {
-        return { 
-            sha256 : base64ToHex(x.FileHash),
-            filename : x.FileName,
-            malwareFamily : x.CurrentMalwareFamily,
-            filesize : x.FileSize,
+    //    console.log(data);
+        const filters = []
+        if (emailEntity.networkMessageId)
+            filters.push(`NetworkMessageId eq '${emailEntity.networkMessageId}'`)
+        if (!Array.isArray(emailEntity.recipient)){
+            filters.push(`Recipients.LowercaseAnalyzed eq '${emailEntity.recipient}'`);
         }
-        });
 
-        attachments = _.uniqBy(attachments, 'sha256');
-        var urlData = entity.UrlDatas ?? [];
-        var urls = await Promise.all(
-        urlData.map(async (x)=> {
-            return await this.getEmailUrlDataByNormalizedURL(startUtc, endUtc, x.NormalizedUrlHash, tenantId=tenantId);
+        var result;
+        var params = {
+            "tenantid": tenantId,
+            "startTime": startUtc, 
+            "endTime": endUtc,
+            "PageSize": 100,
+            "Filter": filters.join(" and ")
+            //        "Filter": "NetworkMessageId eq '" + networkMessageId + "'"
         }
-        )).then(x => {return x;});
-    
-        var timeline = await this.getEmailTimeline(startUtc, endUtc, entity.NetworkMessageId, entity.Recipients[0], tenantId=tenantId);
+        let url = new URL(email_metadata);
+        url.search = new URLSearchParams(params).toString();
+        try {
 
-        return { 
-        networkMessageId : entity.NetworkMessageId,
-        internetMessageId : entity.InternetMessageId,
-        subject : entity.Subject,
-        p1Sender : entity.P1Sender,      
-        p2Sender : entity.P2Sender,
-        p2SenderDisplay : entity.P2SenderDisplayName,
-        ehloDomain : entity.EhloDomain,
-        language : entity.MailLanguage,
-        authentication : {
-            dkim : entity.DkimAuthResult,
-            spf : entity.SpfAuthResult,
-            dmarc : entity.DmarcAuthResult,
-            composite : entity.CompositeAuthResult
-            },
-        senderCountry : entity.SenderCountry,
-        senderIp : entity.SenderIp,
-        senderIpLocation : entity.SenderIpLocation,
-        recipient : entity.Recipients,
-        receivedTime : entity.ReceivedTime,
-        sourceEntityId: entity.SourceEntityId,
-        urlData : urls,
-        attachment : attachments,
-        timeline : timeline
+            const {body} = await this.httpClient.get(email_metadata, params);
+
+            result = body.ResultData ? body.ResultData.map((x)=> { return JSON.parse(x)}) : [];
+        //    console.log(json);
+        } catch (err) {
+        //    console.log("error", err);
+            return [];
         }
-    })).then(x => {return x;});
+
+        if (result.length == 0)
+            return [];
+
+        return await Promise.all(result.map(async (entity) => {
+            var attachments = (entity.AttachmentData ?? []).map((x) => {
+            return { 
+                sha256 : base64ToHex(x.FileHash),
+                filename : x.FileName,
+                malwareFamily : x.CurrentMalwareFamily,
+                filesize : x.FileSize,
+            }
+            });
+
+            attachments = _.uniqBy(attachments, 'sha256');
+            var urlData = entity.UrlDatas ?? [];
+            var urls = await Promise.all(
+            urlData.map(async (x)=> {
+                return await this.getEmailUrlDataByNormalizedURL(startUtc, endUtc, x.NormalizedUrlHash, tenantId=tenantId);
+            }
+            )).then(x => {return x;});
+        
+            var timeline = await this.getEmailTimeline(startUtc, endUtc, entity.NetworkMessageId, entity.Recipients[0], tenantId=tenantId);
+
+            return { 
+            networkMessageId : entity.NetworkMessageId,
+            internetMessageId : entity.InternetMessageId,
+            subject : entity.Subject,
+            p1Sender : entity.P1Sender,      
+            p2Sender : entity.P2Sender,
+            p2SenderDisplay : entity.P2SenderDisplayName,
+            ehloDomain : entity.EhloDomain,
+            language : entity.MailLanguage,
+            authentication : {
+                dkim : entity.DkimAuthResult,
+                spf : entity.SpfAuthResult,
+                dmarc : entity.DmarcAuthResult,
+                composite : entity.CompositeAuthResult
+                },
+            senderCountry : entity.SenderCountry,
+            senderIp : entity.SenderIp,
+            senderIpLocation : entity.SenderIpLocation,
+            recipient : entity.Recipients,
+            receivedTime : entity.ReceivedTime,
+            sourceEntityId: entity.SourceEntityId,
+            urlData : urls,
+            attachment : attachments,
+            timeline : timeline
+            }
+        })).then(x => {return x;});
     }
 
     async  getAlertInfo(data){
@@ -331,6 +331,44 @@ class MDOClass {
         }).filter(Boolean);
     }
     return result;
+    }
+
+    async reportEmailViaNetworkMessageId(networkMessageId, recipient=[], category, reason, confidenceLevel, submitter, tenantId){
+
+        const emailEntity = {networkMessageId, recipient};
+
+        const endpoint = BASE_URL  + ENDPOINTS.MDO_SUBMIT_NETWORK_MSG_ID;
+
+        let endDate = new Date();
+        let startDate  =  new Date(endDate);
+        startDate.setUTCDate(startDate.getUTCDate() - 30);
+
+        const emailMetadata = await this.getEmailMetadata(startDate.toISOString(), endDate.toISOString(), emailEntity, tenantId);
+
+        if (!emailMetadata.length) return null;
+
+        const merged = mergeArrays(emailMetadata)[0];
+
+        const json_body = {
+            ObjectId : networkMessageId,
+            Recipients: merged.recipient,
+            Sender: merged?.p2Sender,
+            SubmissionContent: merged.subject,
+            TenantId: tenantId,
+//            OriginalSubmitter: '',
+            IsApproved: true,
+            SubmissionReason: reason,
+            SubmissionCategory: category,
+            SubmissionConfidenceLevel: confidenceLevel,
+            //SenderIP : merged?.senderIp
+//            EmailType: 1,
+//            Type: 1,
+        }
+        if (submitter) json_body.originalSubmitter = submitter;
+
+        const result = await this.httpClient.post(endpoint, [json_body]);
+
+        return result;
     }
 
     async getMDOAlertData(alertId){

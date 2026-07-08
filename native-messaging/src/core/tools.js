@@ -575,6 +575,67 @@ export const TOOLS = [
         })
     },
     {
+        name: "run_av_scan",
+        description: "Run the Antivirus scan on the endpoint. It can be a quick or full scanning.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                senseMachineId: {type: "string", description: "The ID of the device where the response permissions will be retrieved. It is 40 hexadecimal characters."},
+                osPlatform: {type: "string", description: "OS Platform can be found in the device information"},
+                senseClientVersion: {type: "string", description: "The senseClientversion of the device being investigated. Can be found in the device info", default: ""},
+                quickScan: {type: "boolean", description: "If True, the AV scan will perform a quick AV and if false, it will perform a Full AV Scanning"},
+                comment: {type: "string", description: "The comment of the requestor."}
+            }
+        },
+        //senseMachineId, osPlatform, senseClientVersion, quickScan=true, comment
+        buildPayload: (args)=> ({
+            senseMachineId: args.senseMachineId,
+            osPlatform: args.osPlatform,
+            senseClientVersion: args.senseClientVersion,
+            quickScan: args.quickScan || false,
+            comment: args.comment || 'Performing AV Scanning',
+        })
+    },
+    {
+        name: "get_action_response_status",
+        description: "This will retrieve the current status of response actions made on the device. This will include the status of AV scanning, collection of investigation package, initiate automated investigation, device isolation, restrict app execution and other response available in get_device_response_permissions tool.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                senseMachineId: {type: "string", description: "The ID of the device where the response permissions will be retrieved. It is 40 hexadecimal characters."},
+                tenantIds: {type: "string", description: "GUID of the current tenant. It can be blank if not multitenant.", default: ''}
+            }
+        },
+        buildPayload: (args)=> ({
+            senseMachineId: args.senseMachineId,
+            tenantIds: args.tenantIds | ''
+        })
+    },
+    {
+        name: "submit_email_to_analysis",
+        description: "Submit the email to Microsoft for further analysis and determines if the current verdict is False Positive or False Negative. It will soon have an option to block all the emails from the sender or domain in a definite time.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                networkMessageId: {type: "string", description: "NetworkMessageId of the email."},
+                category: {type: "number", description: "The values can be any of the following: NotJunk (0), Spam (1), Phishing (2) or Malware (3)."},
+                reason: {type: "number", description: "The reason of submission. It can be an False Negative (1) or False Positive (2)."},
+                confidenceLevel: {type: "number", description: "It can be Low (0) or High (1)"},
+                submitter: {type: "string", description: "The email of the submitter", default: ''},
+                tenantId: {type: "string", description: "The tenantId of the organization.", pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'}
+            },
+            required: ["networkMessageId", "category", "reason", "confidenceLevel", "tenantId"]
+        },
+        buildPayload : (args) => ({
+            networkMessageId: args.networkMessageId,
+            category: args.category,
+            reason: args.reason,
+            confidenceLevel: args.confidenceLevel,
+            submitter: args.submitter || '',
+            tenantId: args.tenantId
+        })
+    },
+    {
         name: "msgraph_get_users",
         description: "Search users in Microsoft Graph with specific filter and selected properties",
         inputSchema: {
@@ -596,6 +657,34 @@ export const TOOLS = [
         })
 
     }, 
+    {
+        name: "msgraph_get_user_group",
+        description: "Get the list of groups where the user is currently belong using MSGraph API Proxy.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                userId: {type: "string", description: "The GUID of the user in MSGraph or Entra."},
+                select: {type: "array", description: "The list of keys or properties of group that will be retrieved.", default: []}
+            }
+        },
+        buildPayload: (args)=> ({
+            userId: args.userId,
+            select: args.select
+        })
+    }, 
+    {
+        name: "msgraph_get_user_ca_policies",
+        description: "This will retrieve the user's conditional access policies using MSGraph API Proxy.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                userId: {type: "string", description: "The GUID of the user in MSGraph or Entra."},
+            }
+        },
+        buildPayload: (args)=> ({
+            userId: args.userId,
+        })        
+    },
     {
         name: "msgraph_get_groups",
         description: "Search groups in Microsoft Graph with specific filter and selected properties",

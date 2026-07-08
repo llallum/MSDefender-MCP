@@ -14,7 +14,7 @@ export async function handleMessage(msg) {
     let errorMessage = {
       source: SOURCE,
       type: "error",
-      message: `No handler found for message type: ${msg?.params?.name}`,
+      message: `No handler found for message type: ${type}`,
     };
     await errorLog(errorMessage);
     return errorMessage;
@@ -24,14 +24,16 @@ export async function handleMessage(msg) {
     sendResponse(result); // Send to browser extension
     return result; // To MCP server
   } catch (err) {
-    await errorLog(err, `handleMessage(${msg.type})`);
+    await errorLog(err, `handleMessage(${type})`);
     const errorMessage =
       err instanceof Error
         ? `${err.message}`
         : typeof err === "object"
         ? JSON.stringify(err)
         : String(err);
-    sendResponse({ source: SOURCE, type: "error", message: errorMessage });
+    const errorResponse = { source: SOURCE, type: "error", message: errorMessage };
+    sendResponse(errorResponse);
+    return errorResponse;     //returns undefine, to fix this, return the errorResponse
   }
 }
 
