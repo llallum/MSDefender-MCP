@@ -5,18 +5,19 @@ import { sendResponse, log } from "./utils.js";
 import { handleMessage } from "./messageHandler.js";
 import {pending, progressHandlers} from "./state.js";
 import fs from "fs";
+import { __log } from "./utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const PIPE_NAME = '\\\\.\\pipe\\defender-mcp';
 
-const __logFile = path.resolve(__dirname, "mcp-server.log");
+/* const __logFile = path.resolve(__dirname, "mcp-server.log");
 const __log = (msg) => {
     const line = `[${new Date().toISOString()}] ${msg}\n`;
     process.stderr.write(line);
     try { fs.appendFileSync(__logFile, line); } catch(_){}
-};
+}; */
 
 let SOURCE = path.relative(process.cwd(), fileURLToPath(import.meta.url));
 
@@ -58,6 +59,7 @@ export function startPipeServer(pipeName=PIPE_NAME){
                 type: 'pipe_client_connected',
                 data: `Client ${pipeClients.size} connected`
             });  
+            __log(`[pipeServer.js] Client connected to Server`)
 
             let buffer = '';
             socket.setKeepAlive(true, 5000);

@@ -354,6 +354,17 @@ MIT
 
 ## Changelog
 
+### v1.0.7 *(2026-07-09)*
+
+- feat: `native-messaging.ts` — replaced `setInterval`-based ping/status/flush timers with Chrome Alarms API (`chrome.alarms`) for reliable service worker persistence in Manifest V3; added `PING_ALARM`, `STATUS_ALARM`, `FLUSH_ALARM` constants with `startAlarm()` / `stopAlarm()` helpers
+- feat: `native-messaging.ts` — added exponential backoff reconnect via `scheduledReconnect()` (`BACKOFF_BASE_MS=1000`, `BACKOFF_MAX_MS=30000`); reconnect attempt count forwarded to UI via `reconnect_attempt` message
+- feat: `native-messaging.ts` — added `setShouldStayConnected()` / `getShouldStayConnected()` using `chrome.storage.session` to persist connection intent across service worker restarts; `maybeAutoConnect()` called on `chrome.runtime.onStartup` and `chrome.runtime.onInstalled`; `stop_server` handler now clears reconnect state
+- feat: `pipeClient.js` — refactored from top-level `await connectToPipe()` to exported `connectToServer()` / `attachToSocket()` pattern; added `rejectAllPending()` to gracefully reject all in-flight requests on disconnect; `sendToPipe()` returns an error immediately when pipe is not connected; exponential backoff reconnect (`RECONNECT_BASE_MS=1000`, `RECONNECT_MAX_MS=30000`)
+- feat: `App.tsx` — added `reconnectInfo` state (`{attempt, delayMs}`); status label now shows `"Reconnecting...(attempt N)"` when disconnected and a reconnect is in progress; clears on successful reconnect
+- fix: `pipeServer.js` — replaced local `__log` definition with shared `__log` imported from `utils.js`; added `[pipeServer.js] Client connected to Server` log on client connect
+- fix: `mcp-server.js` — `connectToServer()` is now called explicitly at startup before MCP transport connect; startup log messages moved before `server.connect(transport)` for correct ordering
+- chore: bumped `browser-extension` manifest version to `1.0.4`; bumped `native-messaging` package version to `1.0.7`
+
 ### v1.0.6 *(2026-07-08)*
 
 - feat: `sources/mdo.js` — exported `MDOClass`; added `reportEmailViaNetworkMessageId()` to submit an email (by `networkMessageId`) to Microsoft's Report Submission API as Not Junk / Spam / Phishing / Malware, with False Positive/Negative reason and confidence level; email metadata (recipient, sender, subject) is auto-resolved via `getEmailMetadata()` before submission

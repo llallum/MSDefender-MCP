@@ -9,6 +9,15 @@ let PIPE_NAME = '\\\\.\\pipe\\defender-mcp';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const RECONNECT_BASE_MS = 1000;
+const RECONNECT_MAX_MS = 30000;
+
+let pipeClient = null;
+let isConnected = false;
+let isReconnecting = false;
+let reconnectAttempt = 0;
+let pipeBuffer = '';
+
 async function connectToPipe(retries= 10, delayMs= 1500){
   for (let i=0; i < retries; i++){
     try{
@@ -25,49 +34,116 @@ async function connectToPipe(retries= 10, delayMs= 1500){
   return null;
 }
 
-
-let pipeClient = await connectToPipe();
-
-if (!pipeClient){
-    process.stderr.write('Failed to connect to Server');
-    process.exit(1);
+function rejectAllPending(reason){
+    for (const [requestId, resolve] of pending.entries()){
+        pending.delete(requestId);
+        progressHandlers.delete(requestId);
+        resolve({type: 'error', message: reason})
+    }
 }
 
-let pipeBuffer = '';
-pipeClient.on('data', (data) => {
+function attachToSocket(socket){
+
+    socket.on('data', (data) => {
     pipeBuffer += data.toString();
     const lines = pipeBuffer.split('\n');
     pipeBuffer = lines.pop();
     for (const line of lines){
         if (!line.trim()) continue;
-        try{
-            const msg = JSON.parse(line);
+        try {
+                const msg = JSON.parse(line);
 
-            if (msg?.type === 'progress'){
-                //const handler  = 
-                progressHandlers.get(msg.requestId)?.(msg);
-               // handler?.(msg);
-                continue;
-            }
+                if (msg?.type === 'progress'){
+                    //const handler  = 
+                    progressHandlers.get(msg.requestId)?.(msg);
+                // handler?.(msg);
+                    continue;
+                }
 
-            //console.error(msg);
-            const resolve = pending.get(msg.requestId);
-            if(resolve) {
-                pending.delete(msg.requestId); 
-                resolve(msg);
-            }
-        } catch(_){}
+                //console.error(msg);
+                const resolve = pending.get(msg.requestId);
+                if(resolve) {
+                    pending.delete(msg.requestId); 
+                    resolve(msg);
+                }
+            } catch(_){}
+        }
+    })
+
+    const handleDrop = (reason)=> {
+        if (pipeClient != socket) return;
+    
+        __log(`[pipeClient.js] ${reason}`);
+        //process.stderr.write(`${label}\n`);
+        isConnected = false;
+        rejectAllPending(`[pipeClient.js] Native host has lost connection ${reason}. Reconnecting...`);
+        scheduledReconnect();
     }
-})
 
-pipeClient.on('close', ()=> process.stderr.write('PIPE_CLOSED\n'));
-pipeClient.on('end', ()=> process.stderr.write('PIPE_ENDED\n'));
-pipeClient.on('error', ()=> process.stderr.write('PIPE_ERROR\n'));
+    socket.on('close', ()=> handleDrop('PIPE_CLOSED\n'));
+    socket.on('end', ()=> handleDrop('PIPE_ENDED\n'));
+    socket.on('error', ()=> handleDrop('PIPE_ERROR\n'));
+
+}
+
+function scheduledReconnect(){
+    if (isReconnecting) return;
+    isReconnecting = true;
+
+    const delay = Math.min(RECONNECT_BASE_MS * Math.pow(2, reconnectAttempt), RECONNECT_MAX_MS);
+
+    reconnectAttempt ++;
+
+    __log(`[pipeClient.js] Reconnecting in ${delay}ms (attempt ${reconnectAttempt})`);
+
+    setTimeout(async()=> {
+        const socket = await connectToPipe();
+        isReconnecting = false;
+    
+        if (!socket){
+            scheduledReconnect();
+            return;
+        }
+        
+        pipeClient = socket;
+        isConnected = true;
+        reconnectAttempt = 0;
+        pipeBuffer = '';
+        attachToSocket(socket);
+        __log(`[pipeClient.js] Successfully reconnected to pipeServer.`);
+    }, delay);
+}
+
+export function isPipeConnected(){
+        return isConnected && !!pipeClient;
+}
+
+export async function connectToServer(){
+    pipeClient = await connectToPipe();
+
+    if (!pipeClient){
+        __log('[pipeClient.js] Failed to connect to PipeServer');
+        process.stderr.write('Failed to connect to Server');
+        scheduledReconnect();
+    //    process.exit(1);
+    }else {
+        isConnected = true;
+        attachToSocket(pipeClient);
+    }
+}
 
 export async function sendToPipe(       // to child.js
             request, //resultType, 
             onProgress, 
             timeoutMs = 300_000){
+
+    if (!isPipeConnected()){
+        return Promise.resolve({
+            type: 'error',
+            message: '[pipeClient.js] Native host disconnected, reconnecting... please retry shortly.'
+        })
+    }
+
     return new Promise((resolve, reject)=> {
 
 //        const requestId = crypto.randomUUID();

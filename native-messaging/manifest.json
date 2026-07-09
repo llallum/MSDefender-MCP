@@ -1,7 +1,7 @@
 {
   "name": "com.defender.mcp_server",
   "description": "MCP Server Native Messaging Host",
-  "path": "",
+  "path": "E:\\defender-mcp\\MSDefender-MCP\\native-messaging\\src\\server\\main.js",
   "type": "stdio",
   "allowed_origins": [
     "chrome-extension://kfbgidbhjkpipnhihmidgjiclfkiedff/"

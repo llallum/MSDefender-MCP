@@ -1,6 +1,6 @@
 {
   "name": "msdefender-mcp-native",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Microsoft Defender XDR MCP Server — Native Messaging Host",
   "type": "module",
   "dependencies": {

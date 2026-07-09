@@ -10,6 +10,7 @@ const App =() => {
     const [status, setStatus] = useState<boolean>(false);
     const [serverStatus, setServerStatus] = useState<boolean>(false);
     const [clients, setClients] = useState<number>(0);
+    const [reconnectInfo, setReconnectInfo] = useState<{attempt: number, delayMs: number} | null>(null);
 
     const startServer = async() => {
         if (!serverStatus) {
@@ -49,9 +50,12 @@ const App =() => {
                 const {clientSize, connected} = msg.data;
                 setClients(clientSize);
                 setServerStatus(connected);
+                if (connected) setReconnectInfo(null);
             } else if (msg.type === 'pong'){
                 setStatus(true);
                 setTimeout(()=> setStatus(false), 5000);
+            } else if (msg.type === 'reconnect_attempt'){
+                setReconnectInfo(msg.data);
             }
         }
 
@@ -169,7 +173,14 @@ You many now connect the Claude / Cline / Zoo Code in VSCode.
             <h1>MCP Server for MS Defender XDR</h1>
             <div style={{display: "flex", alignItems: "center", gap: "8px"}}>
                 <Wifi color={serverStatus ? "green" : "red"}/>
-                <Label>{serverStatus ? "Connected" : "Disconnected"}</Label>
+                {/* <Label>{serverStatus ? "Connected" : "Disconnected"}</Label> */}
+                <Label>
+                    {serverStatus 
+                        ? "Connected" 
+                        : reconnectInfo
+                            ? `Reconnecting...(attempt ${reconnectInfo.attempt})`
+                                : "Disconnected"}
+                </Label>
                 <PingIndicator active={status}/>
             </div>
             <DefaultButton onClick={startServer}>{serverStatus ? "Stop" :  "Start"}</DefaultButton>

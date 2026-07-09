@@ -9,15 +9,22 @@ import { ListToolsRequestSchema, CallToolRequestSchema } from "@modelcontextprot
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
 import { TOOLS, TOOLS_BY_NAME } from "../core/tools.js";
-import {sendToPipe} from "../utils/pipeClient.js";              //Connect to Pipe Server
+import {connectToServer, sendToPipe} from "../utils/pipeClient.js";  //Connect to Pipe Server
 import { __log } from "../utils/utils.js";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 //const child = fork(path.resolve(__dirname, 'child.js'), [], {});
-
 //const pipeServer = connectToPipe(pipeName, 5, 1000);
+
+__log(`[startup] MCP server started`);
+
+__log(`[startup] Connecting to PipeServer`);
+
+await connectToServer();
+
 if (process.ppid) {
     const parentPid = process.ppid;
     const watcher = setInterval(()=> {
@@ -115,8 +122,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-__log(`[startup] MCP server started`);
-
 
 if (process.argv.includes("--debug-tool")) {
 
