@@ -191,7 +191,7 @@ The Claude.ai web console supports MCP via the **MCP Remote** proxy. Run the MCP
 
 ---
 
-## Available MCP Tools (45 tools)
+## Available MCP Tools (44 tools)
 
 ### Incident Management
 
@@ -200,7 +200,6 @@ The Claude.ai web console supports MCP via the **MCP Remote** proxy. Run the MCP
 | `get_defender_incidents` | Get incidents with filtering by date, severity, machine ID, IP, URL, hash |
 | `get_defender_incident_by_id` | Get full details of a specific incident |
 | `get_defender_incident_audit_logs` | Get audit log history for an incident |
-| `get_defender_associated_alerts_count` | Get alert count for one or more incidents |
 | `get_defender_associated_alerts` | Get paginated alerts for an incident |
 | `update_defender_incident_status` | Update incident status, severity, classification |
 | `set_defender_incident_comment` | Post a comment to one or more incidents |
@@ -209,7 +208,7 @@ The Claude.ai web console supports MCP via the **MCP Remote** proxy. Run the MCP
 
 | Tool | Description |
 |------|-------------|
-| `get_defender_alert_info` | Deep-analyze an alert by ID (auto-detects MDE/MDI/MDO/MCAS/AAD) |
+| `get_defender_alert_info` | Query detailed information about a specific alert by ID, including MITRE ATT&CK techniques, investigation state, classification, determination, and full description (auto-detects MDE/MDI/MDO/MCAS/AAD) |
 | `set_defender_alert_comment` | Post a comment to a specific alert |
 | `link_alert_to_incident` | Link alerts to an incident with a reason |
 
@@ -353,6 +352,19 @@ MIT
 ---
 
 ## Changelog
+
+### v1.0.8 *(2026-07-10)*
+
+- refactor: `sources/mdo.js`, `sources/mde.js`, `sources/mcas.js`, `sources/mdi.js`, `sources/aad.js` — unified alert source modules to expose a consistent `getAlertInfoById()` instance method instead of standalone `analyze*Alert` functions; `MCASClass` and `AADClass` are now exported
+- refactor: `defender.js` — renamed `analyzeAlertById()` to `getAlertInfoById()`; added `mcasClass` instance and dispatches to source class instances (`mdoClass`, `mdeClass`, `mcasClass`, `mdiClass`, `aadClass`) instead of standalone functions
+- fix: `toolHandler.js` — updated `get_defender_alert_info` handler to call the renamed `defender.getAlertInfoById()`
+- feat: `pipeClient.js` — `sendToPipe()` now polls for pipe reconnection (up to 30s) instead of immediately returning an error when the native host is momentarily disconnected
+- feat: `child.js` — added `SIGTERM`/`SIGINT`/`disconnect` handlers for graceful shutdown; added logging for `uncaughtException`, `unhandledRejection`, and process `exit` events
+- feat: `utils.js` — `__log()` now safely stringifies object messages before writing to the log file
+- feat: `native-messaging.ts` — persists `shouldStayConnected` on successful connect so the service worker auto-reconnects after restarts
+- docs: updated `get_defender_alert_info` tool description to better describe its returned data (MITRE ATT&CK techniques, investigation state, classification, determination)
+- chore: `tools.js` — temporarily disabled the `get_defender_associated_alerts_count` tool (44 tools total)
+- chore: bumped `native-messaging` package version to `1.0.8`
 
 ### v1.0.7 *(2026-07-09)*
 
