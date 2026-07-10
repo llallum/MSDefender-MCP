@@ -11,11 +11,11 @@ import { readJson, log, __log } from "../utils/utils.js";
 import { ENDPOINTS , BASE_URL} from "./endpoints.js";
 import { ALERT_ID_PATTERNS , determineSource} from "./sources/alertIdPatterns.js";
 import { HttpClient } from "../utils/httpClient.js";
-import { analyzeMDOAlert , MDOClass} from "./sources/mdo.js";
-import { analyzeMDEAlert, MDEClass } from "./sources/mde.js";
-import { analyzeMCASAlert } from "./sources/mcas.js";
-import { analyzeMDIAlert , MDIClass} from "./sources/mdi.js";
-import { analyzeAADAlert } from "./sources/aad.js";
+import { MDOClass} from "./sources/mdo.js";
+import { MDEClass } from "./sources/mde.js";
+import { MCASClass } from "./sources/mcas.js";
+import { MDIClass} from "./sources/mdi.js";
+import { AADClass } from "./sources/aad.js";
 import MSGraph from "./sources/msgraph.js";
 import { broadcastToMCP } from "../utils/pipeServer.js";
 import { DuckDatabase } from "../utils/duckdbClient.js";
@@ -30,6 +30,8 @@ export class Defender {
         this.msGraph = new MSGraph(this.httpClient);
         this.mdiClass = new MDIClass(this.httpClient);
         this.mdoClass = new MDOClass(this.httpClient);
+        this.mcasClass = new MCASClass(this.httpClient);
+        
     }
 
     refreshSession(headers){
@@ -700,23 +702,23 @@ export class Defender {
         return res;  
     }
 
-    async analyzeAlertById(alertId){
+    async getAlertInfoById(alertId){
         
         const source = determineSource(alertId);
         switch(source){
             case "MDO":
                 // Call MDO-specific analysis functions or return relevant information
-                return await analyzeMDOAlert(alertId, this.httpClient);
+                return await this.mdoClass.getMDOAlertInfo(alertId);
             case "MDE":
-                return await this.mdeClass.getAlertStory(alertId);
+                return await this.mdeClass.getAlertInfoById(alertId);
             case "MTP":
-                return await analyzeMCASAlert(alertId, this.httpClient);
+                return await this.mcasClass.getAlertInfoById(alertId);
             case "MDI":
-                return await analyzeMDIAlert(alertId, this.httpClient);
+                return await this.mdiClass.getAlertInfoById(alertId);
 //                return await this.getMDEStory(alertId);
                 // Add more cases for other sources as needed
             case "AAD":
-                return await analyzeAADAlert(alertId, this.httpClient);
+                return await this.aadClass.getAlertInfoById(alertId);
             default:
                 return {
                     success: false, 

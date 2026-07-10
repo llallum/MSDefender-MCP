@@ -109,21 +109,17 @@ export class MDIClass{
         return res;
     }
 
-}
+    async getAlertInfoById(alertId){
 
-export async function analyzeMDIAlert(alertId, httpClient){
-
-    const mdi = new MDIClass(httpClient);
-    const alertData = await mdi.getMDIAlertData(alertId);
-    const alertStory = await mdi.getAlertStory(alertId);
-    const alertContext = await mdi.getAlertContext(alertId);
+    const alertData = await this.getMDIAlertData(alertId);
+    const alertStory = await this.getAlertStory(alertId);
+    const alertContext = await this.getAlertContext(alertId);
 
     return {
-        success: true, 
-        body: {
             data: alertData,
             story: alertStory,
             context: alertContext
         }
-    };
+    }
 }
+

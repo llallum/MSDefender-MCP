@@ -34,7 +34,8 @@ export async function readJson(filePath){
 }
 
 export const __log = (msg) => {
-    const line = `[${new Date().toISOString()}] ${msg}\n`;
+    const formatted = (msg !== null && typeof msg === 'object') ? JSON.stringify(msg) : String(msg);
+    const line = `[${new Date().toISOString()}] ${formatted}\n`;
     process.stderr.write(line);
     try { fsSync.appendFileSync(__logFile, line); } catch(err){
       process.stderr.write(`[${new Date().toISOString()}] Failed to write to log file: ${err}\n`);

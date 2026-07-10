@@ -497,7 +497,7 @@ export class MDEClass {
         return info;
     }
 
-    async getAlertStory(alertId) {
+    async getAlertInfoById(alertId) {
         let alertStory = BASE_URL + ENDPOINTS.MDE_ALERT_STORY.replace("{alertId}", alertId);
         
         try {

@@ -196,7 +196,7 @@ export const CHILD_MESSAGE_HANDLER = {
         const defender = await getDefender();
         let analysisResults = null;
         try {
-            analysisResults = await defender.analyzeAlertById(args.alertId);
+            analysisResults = await defender.getAlertInfoById(args.alertId);
         } catch (err){
             analysisResults = err;
         }

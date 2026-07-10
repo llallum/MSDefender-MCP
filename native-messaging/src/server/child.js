@@ -90,21 +90,42 @@ if (!process.send){     //if child.js is run as standalone then it uses stdin fo
 }
 
 process.on('uncaughtException', (err)=>{
+  __log(`[child.js] uncaughtException: ${err?.message || String(err)}\n${err?.stack || ''}`);
   process.send?.({
-    source: SOURCE, 
-    type: 'exception', 
+    source: SOURCE,
+    type: 'exception',
     message: err?.message || String(err),
     stack: err?.stack || ''});
 });
 
 process.on('unhandledRejection', (reason, promise)=> {
+  __log(`[child.js] unhandledRejection: ${reason?.message || String(reason)}\n${reason?.stack || ''}`);
   process.send?.({
     source: SOURCE,
     type: 'exception',
     message: reason?.message || String(reason),
     stack: reason?.stack || ''
   })
-})
+});
+
+process.on('exit', (code) => {
+  __log(`[child.js] process exiting with code ${code}`);
+});
+
+process.on('SIGTERM', () => {
+  __log(`[child.js] received SIGTERM — shutting down`);
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  __log(`[child.js] received SIGINT — shutting down`);
+  process.exit(0);
+});
+
+process.on('disconnect', () => {
+  __log(`[child.js] IPC channel disconnected (parent process gone) — exiting`);
+  process.exit(0);
+});
 
 startPipeServer();            // Initialize Pipe Server where MCP server will connects
 __log(`[child.js] Started Pipe Server`);

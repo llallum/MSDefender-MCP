@@ -138,10 +138,29 @@ export async function sendToPipe(       // to child.js
             timeoutMs = 300_000){
 
     if (!isPipeConnected()){
-        return Promise.resolve({
-            type: 'error',
-            message: '[pipeClient.js] Native host disconnected, reconnecting... please retry shortly.'
-        })
+
+        const connected = await new Promise((resolve) => {
+            const deadline = Date.now() + 30_000;
+            const poll = setInterval(()=> {
+                if(isPipeConnected()){
+                    clearInterval(poll);
+                    resolve(true);
+                } else if (Date.now() >= deadline){
+                    clearInterval(poll);
+                    resolve(false);
+                }
+            }, 500)
+        });
+
+        if (!connected){
+            __log(`[pipeClient.js] Pipe still not available after 30s. Throws error...`);
+            return Promise.resolve({
+                type: 'error',
+                message: '[pipeClient.js] Native host disconnected, reconnecting... please retry shortly.'
+            })
+        }
+
+        __log(`[pipeClient.js] Native Host available...`);
     }
 
     return new Promise((resolve, reject)=> {
@@ -172,8 +191,7 @@ export async function sendToPipe(       // to child.js
            progressHandlers.set(requestId, onProgress);
        }
 
-       __log(`[pipeClient.js] Sending request to pipeServer`);
-        __log(`[pipeClient.js] ${JSON.stringify(request)}`);
+       __log(`[pipeClient.js] Sending request to pipeServer: ${request?.name ?? request?.type ?? '?'} (requestId=${request?.requestId})`);
         pipeClient.write(JSON.stringify(request) + '\n');   //to pipeServer.js under child.js
     })
 }

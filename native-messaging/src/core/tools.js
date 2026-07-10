@@ -76,7 +76,7 @@ export const TOOLS = [
             pageSize: args.pageSize || 100
         })
     }, 
-    {
+/*     {
         name: "get_defender_associated_alerts_count",
         description: "Get the number of alerts associated in an Incident in Microsoft Defender with the given incident ID",
         inputSchema: {
@@ -94,7 +94,7 @@ export const TOOLS = [
             lookBackInDays: args.lookBackInDays || 7,
             status: args.status || ["New", "InProgress"],
         })
-    },
+    }, */
     {
         name: "get_defender_associated_alerts",
         description: "Get Microsoft Defender Incident Associated Alerts for a given incident ID",
@@ -279,7 +279,7 @@ export const TOOLS = [
     },
     {
         name: "get_defender_alert_info", 
-        description: "Analyze a Microsoft Defender Alert by its ID to determine its source and other relevant information",
+        description: "Query detailed information about a specific alert by its ID. Returns full alert details including MITRE ATT&CK techniques and categories, investigation state, classification, determination, and full description. Use this tool when alert-level detail beyond what list/summary tools provide is needed.",
         inputSchema: {
             type: "object",
             properties: {

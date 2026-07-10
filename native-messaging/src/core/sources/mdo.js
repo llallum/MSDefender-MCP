@@ -381,28 +381,29 @@ export class MDOClass {
         }
         
     }
-}
 
-export const analyzeMDOAlert = async(alertId, httpClient) => {
-    let pattern = /fa[a-f0-9]{8}(\-[a-f0-9]{4}){3}\-[a-f0-9]{12}/;
-    if (alertId.match(pattern) == null)
-      return;
+    async getAlertInfoById(alertId) {
 
-    let alertStory = BASE_URL + ENDPOINTS.MDO_ALERT_DATA.replace("{alertId}", alertId);
+        let alertStory = BASE_URL + ENDPOINTS.MDO_ALERT_DATA.replace("{alertId}", alertId);
 
-    const mdoInstance = new MDOClass(httpClient);
+        let pattern = /fa[a-f0-9]{8}(\-[a-f0-9]{4}){3}\-[a-f0-9]{12}/;
+        if (alertId.match(pattern) == null)
+        return;
 
-    try {
-        let result = await mdoInstance.getMDOAlertData(alertId);
-        let alertInfo = await mdoInstance.getAlertInfo(result);
-        let mergedEntities = mergeArrays(alertInfo.relatedEntities);
-//        console.log(c);
-        alertInfo.relatedEntities = mergedEntities;
-//        alertInfo.additionalData = result.additionalData;
-        return alertInfo;
-    } catch (err) {
-        //log(err);
-        return err;
+        try {
+            let result = await this.getMDOAlertData(alertId);
+            let alertInfo = await this.getAlertInfo(result);
+            let mergedEntities = mergeArrays(alertInfo.relatedEntities);
+    //        console.log(c);
+            alertInfo.relatedEntities = mergedEntities;
+    //        alertInfo.additionalData = result.additionalData;
+            return alertInfo;
+        } catch (err) {
+            //log(err);
+            return err;
+        }
+
     }
 
 }
+

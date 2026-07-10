@@ -117,6 +117,7 @@ function connectToNativePort(name:string){
 
             startAlarm();
             reconnectAttempt = 0;
+            setShouldStayConnected(true);   // persist intent so service worker restart auto-reconnects
 
 /*             pingInterval = setInterval(sendPing, 10000);
             statusCheck = setInterval(sendStatus, 3000);
@@ -199,7 +200,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse)=> {
             console.error(`[background] native-messaging.ts`, err);
             sendResponse(false);
         }
-        sendResponse(true);
+  //      sendResponse(true);
     } else if (msg.type === 'stop_server'){
         try {
             setShouldStayConnected(false);

@@ -1,7 +1,7 @@
 import { log } from "../../utils/utils.js";
 import { BASE_URL, ENDPOINTS } from "../endpoints.js";
 
-class AADClass {
+export class AADClass {
 
     constructor(httpClient) {
         this.httpClient = httpClient;
@@ -28,24 +28,24 @@ class AADClass {
         return res;
     }
 
-}
+    async getAlertInfoById(alertId, httpClient) {
 
-export async function analyzeAADAlert(alertId, httpClient) {
+        try {
+            const {body: data} = await this.getAlertData(alertId);
+            const {body: story} = await this.getAlertStory(alertId);
+            const {body: context} = await this.getAlertContext(alertId);
 
-    const aad = new AADClass(httpClient);
-
-    try {
-        const {body: data} = await aad.getAlertData(alertId);
-        const {body: story} = await aad.getAlertStory(alertId);
-        const {body: context} = await aad.getAlertContext(alertId);
-
-        return {
-            data: data,
-            story: story,
-            context: context
+            return {
+                data: data,
+                story: story,
+                context: context
+            }
+        } catch (err) {
+            log(err);
+            return { success: false, body: err?.message || String(err) };
         }
-    } catch (err) {
-        log(err);
-        return { success: false, body: err?.message || String(err) };
     }
+
 }
+
+
