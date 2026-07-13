@@ -262,7 +262,7 @@ export class Defender {
 
     }
 
-    async getAssociatedAlerts(incidentId, lookBackInDays=30, pageNumber=1, pageSize=30){
+    async getAssociatedAlerts(incidentId, lookBackInDays=180, severity=[], status=[], pageNumber=1, pageSize=30){
         var headers = this.getMergedHeaders();
         var associated_alerts =  BASE_URL + ENDPOINTS.ASSOCIATED_ALERTS;
 
@@ -270,9 +270,14 @@ export class Defender {
             "pageNumber": pageNumber,
             "pageSize": pageSize,
             "daysAgo": lookBackInDays,
-            "IncidentIds": [incidentId],
-            "sorByField": "lastEventTime"
-        }
+            "IncidentIds": [incidentId.toString()],
+            "sorByField": "lastEventTime",
+            "order": "desc"
+        };
+
+        if (severity && severity.length > 0) json_body.severity = severity;
+        if (status && status.length > 0) json_body.status = status;
+
         try {
             /* const res = await fetch(associated_alerts, 
                 {

@@ -102,7 +102,9 @@ export const TOOLS = [
             type: "object",
             properties: {
                 incidentId: {type: "number", description: "The ID of the incident to retrieve associated alerts for"},
-                lookBackInDays: { type: "number", default: 1 },
+                lookBackInDays: { type: "number", default: 30 },
+                severity: {type: "array", description: `The severities of alerts to be displayed. The severities are "Informational", "Low","Medium" and "High" respectively.`, default: []},
+                status: {type: "array", description: `Status of the alerts. It can be "New", "InProgress" or "Resolved"`, default: ['New', 'InProgress', 'Resolved']},
                 pageNumber: {type: "number", description: "The page number of results to retrieve, default is 1", default: 1},
                 pageSize: {type: "number", description: "Number of associated alerts to be displayed per page, default is 100", default: 100},
             }
@@ -112,6 +114,8 @@ export const TOOLS = [
         buildPayload: (args) => ({
             incidentId: args.incidentId,
             lookBackInDays: args.lookBackInDays || 1,
+            severity: args.severity || [],
+            status: args.status || [],
             pageNumber: args.pageNumber || 1,
             pageSize: args.pageSize || 100
         })

@@ -103,7 +103,12 @@ export const CHILD_MESSAGE_HANDLER = {
     },
     "get_defender_associated_alerts": async (args) => {
         const defender = await getDefender();
-        const associatedAlerts = await defender.getAssociatedAlerts(args.incidentId, args.lookBackInDays || 1, args.pageNumber || 1, args.pageSize || 100);
+        const associatedAlerts = await defender.getAssociatedAlerts(
+            args.incidentId, 
+            args.lookBackInDays || 1, 
+            args.severity, 
+            args.status, 
+            args.pageNumber || 1, args.pageSize || 100);
         return {
             source: SOURCE, 
     //        type: "associated_alerts_result", 
