@@ -1,3 +1,4 @@
+import { __log } from "./utils.js";
 const HTTP_ERROR_CODES = [429, 503, 502, 504, 440, 400, 401, 403, 404, 500];
 
 export class HttpClient {
@@ -40,7 +41,7 @@ export class HttpClient {
                 let errorBody = null;
                 try {
                     errorBody = await res.json();
-                    ___log(`[httpClient.js] POST Error : ${res?.status} ${res?.statusText || 'unknown'} | body: ${JSON.stringify(errorBody)}`);
+                    __log(`[httpClient.js] POST Error : ${res?.status} ${res?.statusText || 'unknown'} | body: ${JSON.stringify(errorBody)}`);
                  //   console.log(errorBody);
                 } catch(_){}
                 return {success: res.ok, status: res?.status, body: errorBody || res?.statusText};
@@ -56,7 +57,7 @@ export class HttpClient {
         } catch(err) {
 //            console.log(`POST Error : ${err?.status} ${err?.statusText || 'unknown'}`);
 //            throw err;
-            ___log(`[httpClient.js] POST Error : ${err?.status} ${err?.statusText || 'unknown'}`);
+            __log(`[httpClient.js] POST Error : ${err?.status} ${err?.statusText || 'unknown'}`);
             throw err;
         }
         finally {

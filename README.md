@@ -375,6 +375,11 @@ MIT
 
 ## Changelog
 
+### v1.0.9 *(2026-07-21)*
+
+- fix: `native-messaging/src/utils/httpClient.js` — added missing `import { __log } from "./utils.js"` and corrected two typos where `___log` (three underscores) was called instead of the imported `__log` (two underscores), causing a `ReferenceError: ___log is not defined` to be thrown from the `post()` error path whenever an upstream HTTP call returned a 4xx/5xx status. The ReferenceError was masking the real HTTP error body (e.g. Kusto/Data Lake query errors, Graph auth errors) and surfacing to MCP clients as a misleading "___log is not defined" message. Affected any tool that made an HTTP POST — most visibly `run_azure_datalake_hunting_query` and `run_defender_hunting_query`.
+- chore: bumped `native-messaging` package version to `1.0.9`
+
 ### v1.0.8 *(2026-07-10)*
 
 - refactor: `sources/mdo.js`, `sources/mde.js`, `sources/mcas.js`, `sources/mdi.js`, `sources/aad.js` — unified alert source modules to expose a consistent `getAlertInfoById()` instance method instead of standalone `analyze*Alert` functions; `MCASClass` and `AADClass` are now exported
