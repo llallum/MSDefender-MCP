@@ -97,7 +97,7 @@ export const TOOLS = [
     }, */
     {
         name: "get_defender_associated_alerts",
-        description: "Get Microsoft Defender Incident Associated Alerts for a given incident ID",
+        description: "Get Microsoft Defender Incident Associated Alerts for a given incident ID. If theres no data available, use 180 as lookBackInDays.",
         inputSchema: {
             type: "object",
             properties: {

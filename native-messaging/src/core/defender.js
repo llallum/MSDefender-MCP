@@ -16,6 +16,7 @@ import { MDEClass } from "./sources/mde.js";
 import { MCASClass } from "./sources/mcas.js";
 import { MDIClass} from "./sources/mdi.js";
 import { AADClass } from "./sources/aad.js";
+import {DLPClass} from "./sources/dlp.js"
 import MSGraph from "./sources/msgraph.js";
 import { broadcastToMCP } from "../utils/pipeServer.js";
 import { DuckDatabase } from "../utils/duckdbClient.js";
@@ -31,7 +32,7 @@ export class Defender {
         this.mdiClass = new MDIClass(this.httpClient);
         this.mdoClass = new MDOClass(this.httpClient);
         this.mcasClass = new MCASClass(this.httpClient);
-        
+        this.dlpClass  =new DLPClass(this.httpClient);
     }
 
     refreshSession(headers){
@@ -713,7 +714,7 @@ export class Defender {
         switch(source){
             case "MDO":
                 // Call MDO-specific analysis functions or return relevant information
-                return await this.mdoClass.getMDOAlertInfo(alertId);
+                return await this.mdoClass.getAlertInfoById(alertId);
             case "MDE":
                 return await this.mdeClass.getAlertInfoById(alertId);
             case "MTP":
@@ -724,6 +725,8 @@ export class Defender {
                 // Add more cases for other sources as needed
             case "AAD":
                 return await this.aadClass.getAlertInfoById(alertId);
+            case "DLP":
+                return await this.dlpClass.getAlertInfoById(alertId);
             default:
                 return {
                     success: false, 

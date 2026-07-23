@@ -60,6 +60,8 @@ export const ENDPOINTS = {
     MTP_ALERT_STORY             : "/apiproxy/mtp/alertsApiService/alerts/",
     MTP_GET_TIMELINE            : "/apiproxy/mtp/huntingService/alerts/",
 
+    DLP_ALERT_DATA              : "/apiproxy/mtp/alertsApiService/alerts/{alertId}",
+
     DEVICE_INFO                 : "/apiproxy/mtp/getMachine/machines",
     DEVICE_TOTAL_INVENTORY      : "/apiproxy/mtp/ndr/machines/deviceTotals",
     DEVICE_SOFTWARE_INVENTORY   : "/apiproxy/mtp/tvm/analytics/assets/{senseMachineId}/installations/",

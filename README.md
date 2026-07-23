@@ -64,6 +64,7 @@ MSDefender-MCP/
 │       │       ├── mdo.js              ← MDO email threat analyzer
 │       │       ├── mcas.js             ← MCAS cloud app threat analyzer
 │       │       ├── aad.js              ← AAD alert analyzer
+│       │       ├── dlp.js              ← Purview Data Loss Prevention alert analyzer
 │       │       └── msgraph.js          ← MS Graph user/identity queries
 │       └── utils/
 │           ├── httpClient.js       ← HTTP client (cookie-based auth)
@@ -206,7 +207,7 @@ The Claude.ai web console supports MCP via the **MCP Remote** proxy. Run the MCP
 | `get_defender_incidents` | Get incidents with filtering by date, severity, machine ID, IP, URL, hash |
 | `get_defender_incident_by_id` | Get full details of a specific incident |
 | `get_defender_incident_audit_logs` | Get audit log history for an incident |
-| `get_defender_associated_alerts` | Get paginated alerts for an incident |
+| `get_defender_associated_alerts` | Get paginated alerts for an incident. Supports severity filtering; use `lookBackInDays=180` when the default 30-day window returns no results for older or DLP-only incidents |
 | `update_defender_incident_status` | Update incident status, severity, classification |
 | `set_defender_incident_comment` | Post a comment to one or more incidents |
 
@@ -214,7 +215,7 @@ The Claude.ai web console supports MCP via the **MCP Remote** proxy. Run the MCP
 
 | Tool | Description |
 |------|-------------|
-| `get_defender_alert_info` | Query detailed information about a specific alert by ID, including MITRE ATT&CK techniques, investigation state, classification, determination, and full description (auto-detects MDE/MDI/MDO/MCAS/AAD) |
+| `get_defender_alert_info` | Query detailed information about a specific alert by ID, including MITRE ATT&CK techniques, investigation state, classification, determination, and full description (auto-detects MDE/MDI/MDO/MCAS/AAD/DLP) |
 | `set_defender_alert_comment` | Post a comment to a specific alert |
 | `link_alert_to_incident` | Link alerts to an incident with a reason |
 
@@ -292,7 +293,7 @@ The Claude.ai web console supports MCP via the **MCP Remote** proxy. Run the MCP
 
 ## Alert Source Detection
 
-The `get_defender_alert_info` tool automatically identifies the alert source from the alert ID prefix:
+The `get_defender_alert_info` tool automatically identifies the alert source from the alert ID prefix (patterns live in [`native-messaging/src/core/sources/alertIdPatterns.js`](native-messaging/src/core/sources/alertIdPatterns.js:1)):
 
 | Source | Prefix | Analyzer |
 |--------|--------|----------|
@@ -300,7 +301,8 @@ The `get_defender_alert_info` tool automatically identifies the alert source fro
 | **MDI** (Microsoft Defender for Identity) | `aa` | `sources/mdi.js` |
 | **MDO** (Microsoft Defender for Office 365) | `fa` | `sources/mdo.js` |
 | **MCAS** (Microsoft Defender for Cloud Apps) | `ca`, `ma` | `sources/mcas.js` |
-| **AAD** (Azure AD Identity Protection) | `ib` | `sources/aad.js` |
+| **AAD** (Azure AD Identity Protection) | `ad` | `sources/aad.js` |
+| **DLP** (Microsoft Purview Data Loss Prevention) | `dl` | `sources/dlp.js` |
 
 ---
 
@@ -374,6 +376,18 @@ MIT
 ---
 
 ## Changelog
+
+### v1.0.10 *(2026-07-23)*
+
+- feat: `sources/dlp.js` — **new** source class `DLPClass` with `getAlertInfoById()`; wires up the `DLP_ALERT_DATA` endpoint (`/apiproxy/mtp/alertsApiService/alerts/{alertId}`) to return full Purview Data Loss Prevention alert details (policy, `aggregatedLinkedByAlerts`, MDE-enriched host/user entities, `history`)
+- feat: `sources/alertIdPatterns.js` — added `DLP` regex (`/^dl[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}$/`) so `dl…`-prefixed alert IDs auto-route through the DLP analyzer
+- feat: `endpoints.js` — added `DLP_ALERT_DATA` endpoint constant
+- feat: `defender.js` — instantiates `DLPClass` on the `Defender` constructor and adds a `case "DLP"` branch in `getAlertInfoById()` dispatcher; renamed the `case "MDO"` dispatch from the removed legacy method `getMDOAlertInfo()` to the unified `getAlertInfoById()` (this **also unblocks OATP `fa…`-prefixed alerts**, which had been returning empty `{}` responses because the old dispatch pointed at a method that no longer existed after the v1.0.8 alert-source unification)
+- feat: `tools.js` — updated `get_defender_associated_alerts` description with an explicit hint to retry with `lookBackInDays=180` when the default 30-day window returns 0 results (common for older or DLP-only incidents where the associated-alerts response is otherwise empty despite `AlertCount > 0` on the parent incident)
+- fix: `.gitignore` — removed the overly-broad bare `src/` rule that was silently blocking any legitimate `src/` folder from being tracked (this was the reason `sources/dlp.js` did not appear in `git status`); added explicit ignore rules for the runtime artifacts `native-messaging/src/server/defender.json` (session cache — contains cookies, must never be committed) and `native-messaging/src/duckdb/` (local DuckDB timeline storage)
+- security: `client/test.js` — replaced a real Defender alert ID left in an active `subprocess.send()` call with a zero-filled placeholder and commented the block out; verified no other tenant-specific IDs, UPNs, hostnames, or `defender.json`-style secrets remain in the file
+- docs: updated Alert Source Detection table with the new `DLP` (`dl…`) row and corrected the AAD prefix from `ib` to `ad` to match the actual regex in [`native-messaging/src/core/sources/alertIdPatterns.js`](native-messaging/src/core/sources/alertIdPatterns.js:1)
+- docs: added `sources/dlp.js` to the Repository Structure listing and updated `get_defender_alert_info` / `get_defender_associated_alerts` tool descriptions to reflect the new DLP support and the 180-day lookback hint
 
 ### v1.0.9 *(2026-07-21)*
 

@@ -1,5 +1,7 @@
 node_modules/
-src/
+# Note: do NOT add a bare "src/" ignore here — it would hide the actual
+# source tree under native-messaging/src/. If you need to ignore a per-user
+# generated src/ artifact, use a more specific path.
 *.log
 error.log
 .roo/
@@ -19,3 +21,12 @@ run.bat
 browser-extension/dist.pem
 browser-extension/dist.crx
 browser-extension/dist/
+
+# Native messaging host runtime artifacts (per-user data, session cache, DuckDB)
+# These are generated at runtime and must never be committed.
+native-messaging/src/server/defender.json
+native-messaging/src/duckdb/
+
+# Work-in-progress file scheduled to land in a separate commit; remove this
+# line once the streamable-HTTP MCP transport lands on main.
+native-messaging/src/client/mcp-http-server.js

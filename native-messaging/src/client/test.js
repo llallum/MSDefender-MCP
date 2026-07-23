@@ -156,7 +156,7 @@ async function connectToPipe(retries= 5, delayMs= 1000){
 }) */
 
 /* await subprocess.send({
-  type: "search_mdi_identities", searchText: "exampleuser"
+  type: "get_defender_alert_info", alertId: "fa00000000-0000-0000-0000-000000000000"
 }) */
 
 /* await subprocess.send({
@@ -219,7 +219,7 @@ console.log("Message sent to child process.");
 
 // subprocess.send({type: "get_device_missing_kbs",  "deviceId": "0000000000000000000000000000000000000d"})
 
-subprocess.send({
+/* subprocess.send({
   type: "submit_email_to_analysis",
   networkMessageId: "00000000-0000-0000-0000-000000000000",
  // recipient: ['user1@example.com', 'user2@example.com'],
@@ -227,7 +227,7 @@ subprocess.send({
   reason: EmailSubmissionReason.FN,
   confidenceLevel: EmailSubmissionConfidenceLevel.High,
   tenantId: "00000000-0000-0000-0000-000000000000"
-})
+}) */
 
 /*
             args.senseMachineId, 

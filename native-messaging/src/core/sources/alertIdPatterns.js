@@ -22,6 +22,9 @@ export const ALERT_ID_PATTERNS = {
 
   // AAD Identity Protection
   AAD:  /^ad[a-f0-9]{40}$/,
+
+  // Microsoft Data Loss Prevention
+  DLP: /^dl[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}$/,
 };
 
 
