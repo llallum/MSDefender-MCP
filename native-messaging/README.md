@@ -1,5 +1,8 @@
 # MSDefender-MCP
 
+> [!WARNING]
+> 🧪 **Experimental — do not deploy to production.** This is an early-stage, actively-changing project. APIs, tool names, response shapes, and internal architecture are expected to break between commits without notice. Use it in **isolated lab tenants or a personal sandbox only** — never point it at a live Microsoft Defender tenant that protects real users or real data. Bug reports and observations are welcome via [GitHub Issues](../../issues).
+
 A **Model Context Protocol (MCP) server** that integrates with **Microsoft Defender XDR** and **Microsoft Graph** APIs — **no API token required**. Authentication is handled via a Chrome browser extension that captures your active Defender session cookies.
 
 > **Compatible with:** [Zoo Code (Roo)](https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.roo-cline) · [Cline](https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev) · [Claude Desktop](https://claude.ai/download) · [Claude.ai Console](https://console.anthropic.com) · Any MCP-compatible AI client
@@ -344,6 +347,21 @@ Chrome Extension
 - **Graceful degradation** — when a tool is filtered out due to licensing, surface a clear, actionable error/explanation instead of a generic API failure if a client attempts to call it directly.
 - **Response-action expansion** — extend the Device Management response actions (isolate device, restrict app execution, collect investigation package) beyond the current `run_av_scan` / `get_action_response_status` pair.
 - **Automated email remediation** — follow-up actions after `submit_email_to_analysis`, such as bulk sender/domain blocking for a defined time window (already noted as planned in the tool's description).
+
+---
+
+## Disclaimer & Support
+
+This project is **independent** and **not affiliated with, endorsed by, or supported by Microsoft Corporation**. "Microsoft", "Microsoft Defender", "Microsoft Defender XDR", "Microsoft Graph", and related product names are trademarks of their respective owners and are referenced here solely to describe the APIs this software talks to.
+
+There is **no organization, no community, and no team behind this project** — it is a solo, hobby-scale effort maintained on a best-effort basis, with **no warranty, no SLA, and no guarantee of continued maintenance**. There are no paid support channels; there is no incident hotline; there is no roadmap commitment.
+
+If you use it anyway:
+
+- **Bug reports & questions** — [GitHub Issues](../../issues) is the only support surface. Replies may take days or may never come.
+- **Contributions** — pull requests are welcome; see [`SUPPORT.md`](../SUPPORT.md) for what is currently in scope.
+- **Do not contact Microsoft** for anything related to this project. Their support cannot triage third-party tooling, and they may not appreciate seeing their cookies being reused this way.
+- **Do not deploy this against a production tenant.** Session-cookie-based access, no MFA-aware token refresh, no formal auditing, no operational hardening — this is a research and analysis convenience tool, not a security product.
 
 ---
 
